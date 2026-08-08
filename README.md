@@ -3,46 +3,85 @@
 > **High-Performance, Production-Grade E-Commerce Backend written in Go, implementing Clean Architecture, Domain-Driven Design (DDD), and Event-Driven Asynchronous Processing.**
 
 [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat&logo=go)](https://golang.org/)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20DDD-orange)](#-architecture)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20DDD-orange)](#-1-system-architecture)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
-## 💡 Overview
+## 💡 Overview & Engineering Objectives
 
-FlashCart is a **production-grade backend engine** engineered to demonstrate top-tier software engineering standards (Google / Uber / Atlassian / Rubrik level). Unlike generic CRUD applications, FlashCart is designed to handle high concurrency, strict request bounds, observable telemetry, resilient caching, connection pooling, and fault-tolerant background execution.
+FlashCart is a **production-grade e-commerce backend system** written in **Go**. Built for high throughput, strict request execution bounds, resilient database pooling, and observable event processing, FlashCart simulates how companies like **Google, Uber, Amazon, and Rubrik** design distributed backend services.
 
-### Key Highlights
-- **Clean Architecture & Domain-Driven Design (DDD)**: Strict separation of concerns (Client → API Gateway → Middleware → Handler → Service → Repository → Database/Cache).
-- **High Concurrency & Low Latency**: Native Go `net/http` multiplexing with zero-allocation `log/slog` JSON logging.
-- **Resilient Connection Pooling**: PostgreSQL connection management using `pgx/v5` (`pgxpool`) and Redis cache management using `go-redis/v9`.
-- **Fault-Tolerant HTTP Middleware**:
-  - `RequestID`: Trace propagation with `X-Request-ID`.
-  - `Recovery`: Panic safety recovering from runtime panics without dropping server execution.
-  - `Timeout`: Strict 5-second request execution boundary via `context.WithTimeout`.
-  - `Logger`: Structured JSON metrics (latency, status, client IP, payload bytes).
-- **Observability Probes**: Production liveness (`/livez`), health (`/healthz`), and deep readiness (`/readyz`) endpoints.
-- **Graceful Lifecycle Management**: Clean OS signal trapping (`SIGINT`, `SIGTERM`) with orderly teardown of database pools and HTTP server listeners.
+---
+
+## 📐 1. System Architecture Block Diagram
+
+Our backend architecture separates concerns across isolated architectural layers: Client → NGINX Load Balancer / API Gateway → HTTP Middleware Chain → Service Layer → Data Repositories → PostgreSQL & Redis Cache.
+
+![FlashCart System Block Diagram](docs/architecture/system_block_diagram.png)
+
+---
+
+## 🎯 2. Use Case Diagram
+
+Detailed functional decomposition of FlashCart actors and domain capabilities across Auth, Catalog, Cart, Orders, and Stock Reservations.
+
+![FlashCart Use Case Diagram](docs/architecture/use_case_diagram.png)
+
+---
+
+## 🔄 3. Chronological Request Operations Trace (Sequence)
+
+How incoming requests execute through FlashCart's zero-panic middleware pipeline, transactional Unit of Work database locks, and background async worker pools.
+
+![FlashCart Request Lifecycle Diagram](docs/architecture/request_lifecycle_diagram.png)
+
+```text
+Client (HTTP POST /orders)
+  │
+  ├──► [ Middleware Layer ]
+  │      ├── Request ID Generator (X-Request-ID)
+  │      ├── Recovery Handler (Panic Safety)
+  │      ├── Timeout Context (5s Deadline)
+  │      └── Structured Logger (slog JSON)
+  │
+  ├──► [ HTTP Handler & Service Layer ]
+  │      ├── Input Validation & DTO Decoding
+  │      └── Business Domain Rules Execution
+  │
+  ├──► [ Data Layer - PostgreSQL DB Transaction ]
+  │      ├── BEGIN TX (pgxpool)
+  │      ├── Reserve Inventory (Optimistic Locking: WHERE version = x)
+  │      ├── Create Order Entity
+  │      └── COMMIT TX
+  │
+  ├──► [ Async Worker Pool ]
+  │      ├── Dispatch Notification / Email
+  │      └── Trigger Analytics & Invoice Jobs
+  │
+  └──► HTTP 201 Created Response
+```
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Language**: Go 1.26+ (Standard Library)
-- **Database**: PostgreSQL 16 (`pgxpool`)
-- **Cache**: Redis 7 (`go-redis/v9`)
+- **Backend**: Go 1.26+ (Standard Library, `net/http`)
+- **Database**: PostgreSQL 16 (`jackc/pgx/v5` with connection pooling via `pgxpool`)
+- **Cache**: Redis 7 (`redis/go-redis/v9`)
 - **Containerization**: Docker, Docker Compose
-- **Configuration**: `godotenv` with Environment Variable Overrides
+- **DevOps**: GitHub Actions CI/CD Pipeline
+- **Observability**: Prometheus (`/metrics`), Grafana, OpenTelemetry, `slog` JSON Logging
 
 ---
 
-## 📂 Project Structure
+## 📂 Clean Architecture Directory Structure
 
 ```text
 flashcart/
 ├── cmd/
 │   └── server/
-│       └── main.go                 # Application bootstrap & Graceful Shutdown listener
+│       └── main.go                 # App bootstrap & Graceful Shutdown listener
 ├── internal/
 │   ├── config/config.go            # Environment configuration & timeout controls
 │   ├── logger/logger.go            # Structured JSON logger with Context Trace IDs
@@ -54,7 +93,7 @@ flashcart/
 │   │   ├── server.go               # HTTP server setup & lifecycle
 │   │   └── health.go               # Health, Liveness, and Readiness probes
 │   ├── domain/                     # Core enterprise domain entities & interfaces
-│   ├── auth/                       # Authentication & JWT RBAC skeleton
+│   ├── auth/                       # Authentication & JWT RBAC module skeleton
 │   ├── user/                       # User management skeleton
 │   ├── product/                    # Product catalog skeleton
 │   ├── inventory/                  # Inventory reservation & optimistic locking skeleton
@@ -63,7 +102,9 @@ flashcart/
 │   ├── payment/                    # Payment gateway integration skeleton
 │   ├── shipping/                   # Logistics & shipment tracking skeleton
 │   └── notification/               # Asynchronous task notification skeleton
-├── deploy/                         # Deployment manifests
+├── docs/
+│   └── architecture/               # Excalidraw architecture & sequence diagrams
+├── deploy/                         # Production Kubernetes & Docker assets
 ├── docker-compose.yml              # Local container environment (PostgreSQL + Redis + App)
 ├── Dockerfile                      # Multi-stage production container build
 ├── Makefile                        # Automation commands
@@ -73,61 +114,75 @@ flashcart/
 
 ---
 
-## 🚦 Phase Roadmap
+## 🚦 Engineering Phase Roadmap
 
 | Phase | Description | Status |
 |---|---|---|
-| **Phase 1** | Core Foundation & Infrastructure (Clean Arch, Config, Logger, Postgres, Redis, Health Probes, Graceful Shutdown, Docker) | ✅ **Completed** |
-| **Phase 2** | Domain Engineering & Clean Arch Core (Auth, User, Product, Inventory Optimistic Locking, Order DB Tx) | ⏳ Next |
-| **Phase 3** | Concurrency Engine & Business Observability (Go Worker Pools, Prometheus `/metrics`, Grafana Dashboards) | 🔜 Planned |
-| **Phase 4** | Enterprise Observability & Cloud Native (OpenTelemetry Distributed Tracing, CI/CD, K8s, Helm) | 🔜 Planned |
+| **Phase 1** | Core Infrastructure Foundation (Clean Architecture, Config, Structured `slog` Logger, Postgres `pgxpool`, Redis Client, Health Probes, Graceful Teardown, Docker Compose) | ✅ **Completed** |
+| **Phase 2** | Domain Engineering & Core Modules (JWT Auth, Refresh Tokens, Product Catalog, Inventory Optimistic Locking, Order DB Transactions) | ⏳ Next |
+| **Phase 3** | Concurrency Engine & Business Observability (Go Worker Pools, Prometheus `/metrics`, Grafana Business Dashboard) | 🔜 Planned |
+| **Phase 4** | Production Observability & Deployment (OpenTelemetry Tracing, GitHub Actions CI/CD Pipeline, Kubernetes & Helm Deployment) | 🔜 Planned |
 
 ---
 
-## ⚡ Quick Start
+## 🚀 Deployment Guide
 
-### Prerequisites
-- Go 1.24+ installed
-- Docker & Docker Compose installed
+### Option 1: Local Docker Compose Deployment (Recommended)
 
-### Local Development
+Spins up PostgreSQL 16, Redis 7, and FlashCart API container with health checks and volume persistence:
 
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/varun-2122/flashcart.git
-   cd flashcart
-   ```
+```bash
+# 1. Clone repository
+git clone https://github.com/varun-2122/flashcart.git
+cd flashcart
 
-2. **Set Up Environment Variables**
-   ```bash
-   cp .env.example .env
-   ```
+# 2. Copy environment configuration
+cp .env.example .env
 
-3. **Start Local Dependencies with Docker**
-   ```bash
-   make docker-up
-   ```
+# 3. Launch container stack
+make docker-up
+```
 
-4. **Run the Application**
-   ```bash
-   make run
-   ```
+Verify services:
+- API Server: `http://localhost:8080`
+- Liveness Probe: `http://localhost:8080/healthz`
+- Deep Readiness Probe: `http://localhost:8080/readyz`
 
-5. **Run Unit Tests**
-   ```bash
-   make test
-   ```
+```bash
+# Stop container stack
+make docker-down
+```
 
 ---
 
-## 📊 Health Probes
+### Option 2: Production Multi-Stage Docker Deployment
 
-| Route | Method | Description | Success Response |
-|---|---|---|---|
-| `/` | `GET` | API Engine Meta Info | `{"name":"FlashCart API Engine","version":"v1.0.0","status":"operational"}` |
-| `/healthz` | `GET` | System Liveness Probe | `{"success":true,"data":{"status":"UP"}}` |
-| `/livez` | `GET` | K8s Liveness Check | `{"success":true,"data":{"status":"ALIVE"}}` |
-| `/readyz` | `GET` | Deep Readiness Probe (Postgres + Redis) | `{"status":"READY","database":"UP","cache":"UP"}` |
+Build a minimal, secure, non-root Alpine container:
+
+```bash
+docker build -t flashcart:v1.0.0 .
+docker run -p 8080:8080 --env-file .env flashcart:v1.0.0
+```
+
+---
+
+### Option 3: Direct Host Binary Execution
+
+```bash
+make build
+./bin/server
+```
+
+---
+
+## 📊 Health Probes API Reference
+
+| Endpoint | Method | Description | Success Response | Status |
+|---|---|---|---|---|
+| `/` | `GET` | API Engine Information | `{"name":"FlashCart API Engine","version":"v1.0.0","status":"operational"}` | `200 OK` |
+| `/healthz` | `GET` | System Liveness Probe | `{"success":true,"data":{"status":"UP"}}` | `200 OK` |
+| `/livez` | `GET` | Kubernetes Liveness Probe | `{"success":true,"data":{"status":"ALIVE"}}` | `200 OK` |
+| `/readyz` | `GET` | Deep Readiness Probe (DB + Redis) | `{"status":"READY","database":"UP","cache":"UP"}` | `200 OK` / `503 Service Unavailable` |
 
 ---
 
