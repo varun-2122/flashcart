@@ -3,7 +3,7 @@
 > **High-Performance, Production-Grade E-Commerce Backend written in Go, implementing Clean Architecture, Domain-Driven Design (DDD), and Event-Driven Asynchronous Processing.**
 
 [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat&logo=go)](https://golang.org/)
-[![Deployment Status](https://img.shields.io/badge/Deployment-Live%20on%20Render-brightgreen?style=flat&logo=render)](https://flashcart-api.onrender.com)
+[![Deployment Status](https://img.shields.io/badge/Deployment-Live%20on%20Render-brightgreen?style=flat&logo=render)](https://flashcart-api-bob1.onrender.com)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20DDD-orange)](#-1-system-architecture)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -11,10 +11,10 @@
 
 ## 🌐 Live Production API Links
 
-- 🔗 **Live Backend Engine**: [https://flashcart-api.onrender.com](https://flashcart-api.onrender.com)
-- 💚 **Liveness Probe (`/healthz`)**: [https://flashcart-api.onrender.com/healthz](https://flashcart-api.onrender.com/healthz)
-- ⚡ **Deep Readiness Probe (`/readyz`)**: [https://flashcart-api.onrender.com/readyz](https://flashcart-api.onrender.com/readyz)
-- 📡 **K8s Probe (`/livez`)**: [https://flashcart-api.onrender.com/livez](https://flashcart-api.onrender.com/livez)
+- 🔗 **Live Backend Engine**: [https://flashcart-api-bob1.onrender.com](https://flashcart-api-bob1.onrender.com)
+- 💚 **Liveness Probe (`/healthz`)**: [https://flashcart-api-bob1.onrender.com/healthz](https://flashcart-api-bob1.onrender.com/healthz)
+- ⚡ **Deep Readiness Probe (`/readyz`)**: [https://flashcart-api-bob1.onrender.com/readyz](https://flashcart-api-bob1.onrender.com/readyz)
+- 📡 **K8s Probe (`/livez`)**: [https://flashcart-api-bob1.onrender.com/livez](https://flashcart-api-bob1.onrender.com/livez)
 
 ---
 
