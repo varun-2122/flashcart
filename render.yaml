@@ -5,7 +5,7 @@ services:
     plan: free
     region: singapore
     dockerfilePath: Dockerfile
-    healthCheckPath: /readyz
+    healthCheckPath: /healthz
     envVars:
       - key: APP_ENV
         value: production
@@ -36,7 +36,7 @@ services:
           name: flashcart-db
           property: database
       - key: DB_SSLMODE
-        value: require
+        value: disable
       - key: REDIS_HOST
         fromService:
           type: redis
