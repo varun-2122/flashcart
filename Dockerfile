@@ -1,5 +1,7 @@
-# Build Stage
-FROM golang:1.24-alpine AS builder
+# Build Stage - Use latest official Go Alpine image to support Go 1.24+ / 1.25+
+FROM golang:alpine AS builder
+
+ENV GOTOOLCHAIN=auto
 
 WORKDIR /app
 
@@ -18,7 +20,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags="-w -s" \
     -o /app/bin/server ./cmd/server
 
-# Production Stage
+# Production Stage - Minimal, secure Alpine runtime
 FROM alpine:3.19 AS runner
 
 WORKDIR /app
