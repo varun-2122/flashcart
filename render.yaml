@@ -48,10 +48,7 @@ services:
           name: flashcart-redis
           property: port
       - key: REDIS_PASSWORD
-        fromService:
-          type: redis
-          name: flashcart-redis
-          property: password
+        value: ""
 
   - type: redis
     name: flashcart-redis
@@ -62,6 +59,6 @@ services:
 databases:
   - name: flashcart-db
     databaseName: flashcart_db
-    user: postgres
+    user: flashcart_user
     plan: free
     region: singapore
