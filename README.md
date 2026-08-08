@@ -4,6 +4,7 @@
 
 [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20DDD-orange)](#-1-system-architecture)
+[![Deploy to Render](https://render.com/images/deploy-to-render.svg)](https://render.com)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
@@ -105,6 +106,7 @@ flashcart/
 ├── docs/
 │   └── architecture/               # Excalidraw architecture & sequence diagrams
 ├── deploy/                         # Production Kubernetes & Docker assets
+├── render.yaml                     # Infrastructure as Code (1-Click Cloud Blueprint)
 ├── docker-compose.yml              # Local container environment (PostgreSQL + Redis + App)
 ├── Dockerfile                      # Multi-stage production container build
 ├── Makefile                        # Automation commands
@@ -125,52 +127,38 @@ flashcart/
 
 ---
 
-## 🚀 Deployment Guide
+## 🌐 🌟 Best Deployment Mode: Free 1-Click Cloud Deployment (Render / Railway)
 
-### Option 1: Local Docker Compose Deployment (Recommended)
+This repository includes a production Infrastructure-as-Code blueprint (`render.yaml`). It automatically provisions:
+1. **FlashCart Go API Web Service** (Containerized Docker runtime)
+2. **Managed Cloud PostgreSQL Database**
+3. **Managed Cloud Redis Cache**
 
-Spins up PostgreSQL 16, Redis 7, and FlashCart API container with health checks and volume persistence:
+### Steps for 1-Click Cloud Deployment
 
-```bash
-# 1. Clone repository
-git clone https://github.com/varun-2122/flashcart.git
-cd flashcart
-
-# 2. Copy environment configuration
-cp .env.example .env
-
-# 3. Launch container stack
-make docker-up
-```
-
-Verify services:
-- API Server: `http://localhost:8080`
-- Liveness Probe: `http://localhost:8080/healthz`
-- Deep Readiness Probe: `http://localhost:8080/readyz`
-
-```bash
-# Stop container stack
-make docker-down
-```
+1. Go to [render.com](https://render.com) and log in with your **GitHub account (`varun-2122`)**.
+2. Click **New +** → Select **Blueprint**.
+3. Connect your GitHub repository `https://github.com/varun-2122/flashcart`.
+4. Render will automatically read `render.yaml` and launch:
+   - Go Backend API Service
+   - PostgreSQL Database
+   - Redis Instance
+5. Click **Apply**. Within 2 minutes, your live production HTTPS API will be active (e.g. `https://flashcart-api.onrender.com`)!
 
 ---
 
-### Option 2: Production Multi-Stage Docker Deployment
+### Alternative Local Deployment Modes
 
-Build a minimal, secure, non-root Alpine container:
-
-```bash
-docker build -t flashcart:v1.0.0 .
-docker run -p 8080:8080 --env-file .env flashcart:v1.0.0
-```
-
----
-
-### Option 3: Direct Host Binary Execution
-
+#### Mode 2: Local Host Binary Execution
 ```bash
 make build
 ./bin/server
+```
+
+#### Mode 3: Local Docker Compose (Requires Docker Desktop)
+```bash
+cp .env.example .env
+make docker-up
 ```
 
 ---

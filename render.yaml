@@ -1,0 +1,67 @@
+services:
+  - type: web
+    name: flashcart-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: Dockerfile
+    healthCheckPath: /readyz
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_PORT
+        value: 8080
+      - key: LOG_LEVEL
+        value: info
+      - key: LOG_FORMAT
+        value: json
+      - key: DB_HOST
+        fromDatabase:
+          name: flashcart-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: flashcart-db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: flashcart-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: flashcart-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: flashcart-db
+          property: database
+      - key: DB_SSLMODE
+        value: require
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: flashcart-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: flashcart-redis
+          property: port
+      - key: REDIS_PASSWORD
+        fromService:
+          type: redis
+          name: flashcart-redis
+          property: password
+
+  - type: redis
+    name: flashcart-redis
+    plan: free
+    region: singapore
+    ipAllowList: [] # internal access only
+
+databases:
+  - name: flashcart-db
+    databaseName: flashcart_db
+    user: postgres
+    plan: free
+    region: singapore
