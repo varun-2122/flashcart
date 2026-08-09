@@ -1,4 +1,4 @@
-# 🚀 FlashCart - Production-Grade E-Commerce Backend Engine
+# 🚀 FlashCart - Production-Grade Backend Engine
 
 > **High-Performance, Production-Grade E-Commerce Backend written in Go, implementing Clean Architecture, Domain-Driven Design (DDD), and Event-Driven Asynchronous Processing.**
 
@@ -9,24 +9,18 @@
 
 ---
 
-## 🌐 Live Production API
+## 🌐 Live Production API Links
 
-- 🔗 **API Base Engine**: [https://flashcart-api-bob1.onrender.com](https://flashcart-api-bob1.onrender.com)
-- 💚 **Liveness Probe**: [https://flashcart-api-bob1.onrender.com/healthz](https://flashcart-api-bob1.onrender.com/healthz)
-- ⚡ **Readiness Probe**: [https://flashcart-api-bob1.onrender.com/readyz](https://flashcart-api-bob1.onrender.com/readyz)
+- 🔗 **Live Backend Engine**: [https://flashcart-api-bob1.onrender.com](https://flashcart-api-bob1.onrender.com)
+- 💚 **Liveness Probe (`/healthz`)**: [https://flashcart-api-bob1.onrender.com/healthz](https://flashcart-api-bob1.onrender.com/healthz)
+- ⚡ **Deep Readiness Probe (`/readyz`)**: [https://flashcart-api-bob1.onrender.com/readyz](https://flashcart-api-bob1.onrender.com/readyz)
+- 📡 **K8s Probe (`/livez`)**: [https://flashcart-api-bob1.onrender.com/livez](https://flashcart-api-bob1.onrender.com/livez)
 
 ---
 
-## 💡 Engineering Highlights
+## 💡 Overview & Engineering Objectives
 
-FlashCart is built to demonstrate production backend engineering standards (Google / Uber / Atlassian / Rubrik level):
-
-- **Clean Architecture & DDD**: Strict layer isolation (Client → Middleware → Handler → Service → Repository → Database/Cache).
-- **JWT & RBAC Security**: HMAC-SHA256 tokens, Bcrypt password hashing, and Role-Based Access Control (`customer`, `admin`).
-- **High-Concurrency Optimistic Locking**: Stock reservation using versioned database updates (`WHERE product_id = $1 AND version = $2`).
-- **Unit of Work Transactions**: Atomic multi-table order checkout executed inside PostgreSQL transactions (`pgx.Tx`).
-- **Redis Catalog Caching**: Transparent cache decorator for hot product queries (`product:{id}`) with automatic invalidation.
-- **Zero-Panic Middleware**: `X-Request-ID` tracing, `slog` JSON logging, panic recovery, and strict 5s request context deadlines.
+FlashCart is a **production-grade e-commerce backend system** written in **Go**. Built for high throughput, strict request execution bounds, resilient database pooling, and observable event processing, FlashCart simulates how companies like **Google, Uber, Amazon, and Rubrik** design distributed backend services.
 
 ---
 
@@ -55,14 +49,26 @@ How incoming requests execute through FlashCart's zero-panic middleware pipeline
 ```text
 Client (HTTP POST /orders)
   │
-  ├──► [ Middleware Layer ] (Request ID, 5s Context Timeout, slog Logger, Panic Recovery)
-  ├──► [ HTTP Handler & Service Layer ] (Validation, Auth Claims, DTO Parsing)
+  ├──► [ Middleware Layer ]
+  │      ├── Request ID Generator (X-Request-ID)
+  │      ├── Recovery Handler (Panic Safety)
+  │      ├── Timeout Context (5s Deadline)
+  │      └── Structured Logger (slog JSON)
+  │
+  ├──► [ HTTP Handler & Service Layer ]
+  │      ├── Input Validation & DTO Decoding
+  │      └── Business Domain Rules Execution
+  │
   ├──► [ Data Layer - PostgreSQL DB Transaction ]
   │      ├── BEGIN TX (pgxpool)
   │      ├── Reserve Inventory (Optimistic Locking: WHERE version = x)
-  │      ├── Create Order & OrderItems Entity
+  │      ├── Create Order Entity
   │      └── COMMIT TX
-  ├──► [ Async Operations ] (Clear Cart, Dispatch Notifications)
+  │
+  ├──► [ Async Worker Pool ]
+  │      ├── Dispatch Notification / Email
+  │      └── Trigger Analytics & Invoice Jobs
+  │
   └──► HTTP 201 Created Response
 ```
 
@@ -70,11 +76,12 @@ Client (HTTP POST /orders)
 
 ## 🛠 Tech Stack
 
-- **Backend**: Go 1.24+ (`net/http`, `log/slog`)
+- **Backend**: Go 1.24+ (Standard Library, `net/http`)
 - **Database**: PostgreSQL 16 (`jackc/pgx/v5` with connection pooling via `pgxpool`)
 - **Cache**: Redis 7 (`redis/go-redis/v9`)
-- **Authentication**: JWT (`golang-jwt/jwt/v5`), Bcrypt (`golang.org/x/crypto`)
-- **DevOps**: Docker, Docker Compose, GitHub Actions CI/CD Pipeline
+- **Containerization**: Docker, Docker Compose
+- **DevOps**: GitHub Actions CI/CD Pipeline
+- **Observability**: Prometheus (`/metrics`), Grafana, OpenTelemetry, `slog` JSON Logging
 
 ---
 
@@ -86,20 +93,32 @@ flashcart/
 │   └── server/
 │       └── main.go                 # App bootstrap & Graceful Shutdown listener
 ├── internal/
-│   ├── auth/                       # JWT generation, Bcrypt, AuthService, RBAC Middleware
-│   ├── cart/                       # Redis Shopping Cart repository, service, & handlers
-│   ├── inventory/                  # Optimistic Locking stock reservation repository
-│   ├── order/                      # Unit of Work DB Transaction order checkout
-│   ├── product/                    # Product catalog repository, Redis cache decorator, & service
-│   ├── user/                       # User profile repository & domain logic
 │   ├── config/config.go            # Environment configuration & timeout controls
-│   ├── logger/logger.go            # Structured slog JSON logger with Trace IDs
-│   ├── database/                   # PostgreSQL pgxpool manager & auto-migrations
+│   ├── logger/logger.go            # Structured JSON logger with Context Trace IDs
+│   ├── database/                   # PostgreSQL connection pool & migrations runner
+│   │   ├── postgres.go
+│   │   └── migrations.go
 │   ├── cache/redis.go              # Redis cache connection manager
-│   ├── response/response.go        # Standardized HTTP JSON API response helper
+│   ├── response/response.go        # Standardized HTTP JSON API responses
 │   ├── middleware/middleware.go    # Request ID, Recovery, Logger, Timeout, CORS
-│   ├── server/                     # HTTP server setup & Health/Readiness probes
-│   └── domain/                     # Core enterprise domain entities & interfaces
+│   ├── server/
+│   │   ├── server.go               # HTTP server setup & domain route wiring
+│   │   └── health.go               # Health, Liveness, and Readiness probes
+│   ├── domain/                     # Core enterprise domain entities & interfaces
+│   │   ├── user.go
+│   │   ├── product.go
+│   │   ├── inventory.go
+│   │   ├── cart.go
+│   │   └── order.go
+│   ├── auth/                       # JWT Authentication, Bcrypt, & RBAC Middleware
+│   ├── user/                       # User profile persistence
+│   ├── product/                    # Product catalog & Redis cache decorator
+│   ├── inventory/                  # Inventory optimistic locking stock manager
+│   ├── cart/                       # Redis shopping cart persistence
+│   ├── order/                      # Order checkout engine & Unit of Work transactions
+│   ├── payment/                    # Payment gateway integration skeleton
+│   ├── shipping/                   # Logistics & shipment tracking skeleton
+│   └── notification/               # Asynchronous task notification skeleton
 ├── scripts/
 │   └── migrations/                 # DDL SQL Schema Migration Scripts
 ├── docs/
@@ -108,59 +127,78 @@ flashcart/
 ├── docker-compose.yml              # Local container environment (PostgreSQL + Redis + App)
 ├── Dockerfile                      # Multi-stage production container build
 ├── Makefile                        # Automation commands
+├── .env.example                    # Environment variable template
 └── go.mod
 ```
 
 ---
 
-## 🔌 API Endpoints Reference
+## 🚦 Engineering Phase Roadmap
 
-### 🔐 Authentication (`/api/v1/auth`)
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| `POST` | `/api/v1/auth/register` | Register new user | No |
-| `POST` | `/api/v1/auth/login` | Authenticate user & receive JWT token | No |
-
-### 🛍 Products (`/api/v1/products`)
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| `GET` | `/api/v1/products` | List, filter, search & paginate products | No |
-| `GET` | `/api/v1/products/{id}` | Get product details by UUID | No |
-| `POST` | `/api/v1/products` | Create product with stock | **Admin Only** |
-
-### 🛒 Shopping Cart (`/api/v1/cart`)
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| `GET` | `/api/v1/cart` | Get current user's shopping cart | **Yes** |
-| `POST` | `/api/v1/cart/items` | Add or update item quantity in cart | **Yes** |
-| `DELETE` | `/api/v1/cart/items/{product_id}` | Remove item from cart | **Yes** |
-
-### 📦 Orders (`/api/v1/orders`)
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| `POST` | `/api/v1/orders` | Checkout cart with **Optimistic Stock Locking** | **Yes** |
-| `GET` | `/api/v1/orders` | List current user's order history | **Yes** |
-| `GET` | `/api/v1/orders/{id}` | Get order details by UUID | **Yes** |
-
-### 📊 Health & Telemetry Probes
-| Method | Endpoint | Description | Response |
-|---|---|---|---|
-| `GET` | `/healthz` | System Liveness Probe | `{"success":true,"data":{"status":"UP"}}` |
-| `GET` | `/readyz` | Deep Readiness Probe (Postgres + Redis) | `{"status":"READY","database":"UP","cache":"UP"}` |
+| Phase | Description | Status |
+|---|---|---|
+| **Phase 1** | Core Infrastructure Foundation (Clean Architecture, Config, Structured `slog` Logger, Postgres `pgxpool`, Redis Client, Health Probes, Graceful Teardown, Docker Compose) | ✅ **Completed** |
+| **Phase 2** | Domain Engineering & Core Modules (JWT Auth, Refresh Tokens, Product Catalog, Inventory Optimistic Locking, Cart, Order DB Transactions) | ✅ **Completed** |
+| **Phase 3** | Concurrency Engine & Business Observability (Go Worker Pools, Prometheus `/metrics`, Grafana Business Dashboard) | ⏳ **Next** |
+| **Phase 4** | Production Observability & Deployment (OpenTelemetry Tracing, GitHub Actions CI/CD Pipeline, Kubernetes & Helm Deployment) | 🔜 Planned |
 
 ---
 
-## ⚡ Quick Start
+## 🌐 🌟 Best Deployment Mode: Free 1-Click Cloud Deployment (Render / Railway)
 
-```bash
-# 1. Clone repository
-git clone https://github.com/varun-2122/flashcart.git
-cd flashcart
+This repository includes a production Infrastructure-as-Code blueprint (`render.yaml`). It automatically provisions:
+1. **FlashCart Go API Web Service** (Containerized Docker runtime)
+2. **Managed Cloud PostgreSQL Database**
+3. **Managed Cloud Redis Cache**
 
-# 2. Build and run server binary
-make build
-./bin/server
-```
+### Steps for 1-Click Cloud Deployment
+
+1. Go to [render.com](https://render.com) and log in with your **GitHub account (`varun-2122`)**.
+2. Click **New +** → Select **Blueprint**.
+3. Connect your GitHub repository `https://github.com/varun-2122/flashcart`.
+4. Render will automatically read `render.yaml` and launch:
+   - Go Backend API Service
+   - PostgreSQL Database
+   - Redis Instance
+5. Click **Apply**. Within 2 minutes, your live production HTTPS API will be active at [https://flashcart-api-bob1.onrender.com](https://flashcart-api-bob1.onrender.com)!
+
+---
+
+## 📊 Endpoints & API Reference
+
+### System & Health Probes
+
+| Endpoint | Method | Description | Success Response | Status |
+|---|---|---|---|---|
+| `/` | `GET` | API Engine Information | `{"name":"FlashCart API Engine","version":"v2.0.0","status":"operational"}` | `200 OK` |
+| `/healthz` | `GET` | System Liveness Probe | `{"success":true,"data":{"status":"UP"}}` | `200 OK` |
+| `/livez` | `GET` | Kubernetes Liveness Probe | `{"success":true,"data":{"status":"ALIVE"}}` | `200 OK` |
+| `/readyz` | `GET` | Deep Readiness Probe (DB + Redis) | `{"status":"READY","database":"UP","cache":"UP"}` | `200 OK` / `503 Service Unavailable` |
+
+### Auth API
+
+| Endpoint | Method | Auth | Description | Payload / Query |
+|---|---|---|---|---|
+| `/api/v1/auth/register` | `POST` | None | Register new user account | `{"email", "password", "first_name", "last_name", "role"}` |
+| `/api/v1/auth/login` | `POST` | None | Authenticate and obtain JWT | `{"email", "password"}` |
+
+### Product Catalog API
+
+| Endpoint | Method | Auth | Description | Payload / Query |
+|---|---|---|---|---|
+| `/api/v1/products` | `GET` | None | List catalog with pagination & search | `?search=...&category_id=...&min_price=...&limit=20&offset=0` |
+| `/api/v1/products/{id}` | `GET` | None | Get product by UUID (Redis cached) | Path Param `{id}` |
+| `/api/v1/products` | `POST` | Admin | Create product & initial stock | `{"sku", "name", "price", "brand", "quantity"}` |
+
+### Shopping Cart & Order API
+
+| Endpoint | Method | Auth | Description | Payload / Query |
+|---|---|---|---|---|
+| `/api/v1/cart` | `GET` | Bearer JWT | View user shopping cart | Header `Authorization: Bearer <token>` |
+| `/api/v1/cart/items` | `POST` | Bearer JWT | Add item to cart | `{"product_id", "quantity"}` |
+| `/api/v1/cart/items/{product_id}` | `DELETE` | Bearer JWT | Remove item from cart | Path Param `{product_id}` |
+| `/api/v1/orders` | `POST` | Bearer JWT | Process checkout (Unit of Work DB Tx) | Header `Authorization: Bearer <token>` |
+| `/api/v1/orders` | `GET` | Bearer JWT | List authenticated user orders | Header `Authorization: Bearer <token>` |
 
 ---
 
