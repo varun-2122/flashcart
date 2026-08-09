@@ -1,6 +1,6 @@
-# 🚀 FlashCart - Production-Grade Backend Engine
+# 🚀 FlashCart - Production Engineering Laboratory
 
-> **High-Performance, Production-Grade E-Commerce Backend written in Go, implementing Clean Architecture, Domain-Driven Design (DDD), and Event-Driven Asynchronous Processing.**
+> **High-Performance, Production-Grade E-Commerce Backend written in Go, implementing Clean Architecture, Domain-Driven Design (DDD), Optimistic Concurrency Locking, Unit of Work Transactions, and Event-Driven Asynchronous Processing.**
 
 [![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20DDD-orange)](#-1-system-architecture-block-diagram)
@@ -10,20 +10,14 @@
 
 ## 💡 Overview & Engineering Objectives
 
-FlashCart is a **production-grade e-commerce backend system** written in **Go**. Built for high throughput, strict request execution bounds, resilient database pooling, and observable event processing, FlashCart simulates how modern engineering teams at companies like **Google, Uber, Amazon, and Rubrik** design distributed backend services.
+FlashCart is a **production-grade backend system** engineered to demonstrate top-tier software engineering standards (Google / Uber / Atlassian / Rubrik level). Rather than building basic CRUD handlers, FlashCart serves as an **engineering laboratory** designed to solve real-world system design challenges: high-concurrency race conditions, atomic database transactions, zero-panic middleware pipelines, observable metrics, and non-blocking background task processing.
 
-### Core Engineering Features
-- **Clean Architecture & DDD**: Strict layer isolation (Client → Middleware → Handler → Service → Repository → Database/Cache).
-- **High Concurrency & Low Latency**: Native Go `net/http` multiplexing with zero-allocation `log/slog` JSON logging.
-- **Resilient Connection Pooling**: PostgreSQL connection management via `pgx/v5` (`pgxpool`) and Redis caching via `go-redis/v9`.
-- **Fault-Tolerant Middleware Pipeline**:
-  - `RequestID`: Trace propagation with `X-Request-ID`.
-  - `Recovery`: Panic safety recovering from runtime panics without dropping server execution.
-  - `Timeout`: Strict request execution boundary via `context.WithTimeout`.
-  - `Logger`: Structured JSON metrics (latency, HTTP status, client IP, payload bytes).
-- **Optimistic Concurrency Control**: Stock reservation with versioned database locks preventing race conditions during flash sales.
-- **Unit of Work Transactions**: Multi-table order processing inside atomic PostgreSQL transactions (`pgx.Tx`).
-- **Observability Probes**: System liveness (`/livez`), health (`/healthz`), and deep readiness (`/readyz`) endpoints.
+### Core Engineering Principles
+- **Clean Architecture & DDD**: Strict isolation between HTTP transport handlers, domain business services, and database persistence layers.
+- **Optimistic Concurrency Control**: Stock reservations executed with versioned database locks (`WHERE product_id = $1 AND version = $2`), preventing race conditions during flash sales.
+- **Transactional Unit of Work**: Multi-table order processing executed inside atomic PostgreSQL transactions (`pgx.Tx`), ensuring zero partial writes.
+- **Fault-Tolerant Middleware Pipeline**: Request ID propagation, panic safety recovery, and strict 5-second context timeout boundaries.
+- **Zero-Allocation Observability**: High-throughput structured JSON logging using Go standard `log/slog`.
 
 ---
 
@@ -77,7 +71,62 @@ Client (HTTP POST /orders)
 
 ---
 
-## 🛠 4. Tech Stack
+## 📝 4. Engineering Deep-Dives & Handwritten Notes
+
+### A. Optimistic Concurrency Control & Stock Locking
+
+In high-concurrency e-commerce systems, thousands of checkout requests attempt to reserve stock for popular items simultaneously. Traditional pessimistic locking (`SELECT FOR UPDATE`) causes database connection starvation and query deadlocks. 
+
+FlashCart implements **Optimistic Concurrency Control (OCC)** using explicit version checks:
+
+![FlashCart Optimistic Locking Diagram](docs/architecture/optimistic_locking_diagram.png)
+
+#### Implementation Pattern (`internal/inventory/repository_pg.go`):
+```sql
+UPDATE inventory
+SET quantity = quantity - $1, version = version + 1, updated_at = NOW()
+WHERE product_id = $2 
+  AND version = $3 
+  AND (quantity - reserved_quantity) >= $1;
+```
+If `commandTag.RowsAffected() == 0`, the transaction detects a version conflict or insufficient stock and returns `ErrOptimisticLockConflict` without locking table rows.
+
+---
+
+### B. Transactional Unit of Work Order Checkout
+
+Processing an order requires mutating multiple tables (inventory stock, orders, order line items, and cart state). If a failure occurs midway (e.g. invalid payment or network glitch), the system must never leave orphan orders or unreserved inventory.
+
+FlashCart implements the **Unit of Work Pattern** wrapping execution inside an atomic PostgreSQL transaction:
+
+![FlashCart Unit of Work Diagram](docs/architecture/unit_of_work_diagram.png)
+
+#### Execution Lifecycle (`internal/order/service.go`):
+1. `tx, err := db.Pool.Begin(ctx)`
+2. Read shopping cart items
+3. Reserve inventory stock using **Optimistic Locking**
+4. Insert Order and OrderItems records
+5. Clear user shopping cart
+6. `tx.Commit(ctx)` — If any step fails, `tx.Rollback(ctx)` executes automatically.
+
+---
+
+### C. Asynchronous Worker Pool & Event Pipeline
+
+Synchronous HTTP handlers should never execute long-running tasks like rendering PDF invoices, sending emails, or pushing analytics events. Doing so inflates API response latency.
+
+FlashCart decouples execution using a **Go Goroutine Worker Pool**:
+
+![FlashCart Worker Pool Diagram](docs/architecture/worker_pool_diagram.png)
+
+#### Workflow:
+- The HTTP handler dispatches an `OrderCreated` event to a buffered channel (`chan Job`, capacity 100).
+- A pool of parallel worker goroutines pulls jobs from the channel concurrently.
+- The client receives an immediate `201 Created` response while worker goroutines process notifications in the background.
+
+---
+
+## 🛠 5. Tech Stack
 
 - **Language & Runtime**: Go 1.24+ (Standard Library, `net/http`)
 - **Database**: PostgreSQL 16 (`jackc/pgx/v5` connection pooling via `pgxpool`)
@@ -89,7 +138,7 @@ Client (HTTP POST /orders)
 
 ---
 
-## 📂 5. Clean Architecture Directory Structure
+## 📂 6. Clean Architecture Directory Structure
 
 ```text
 flashcart/
@@ -126,7 +175,7 @@ flashcart/
 ├── scripts/
 │   └── migrations/                 # DDL SQL Schema Migration Scripts
 ├── docs/
-│   └── architecture/               # Excalidraw architecture & sequence diagrams
+│   └── architecture/               # Excalidraw architecture & engineering note diagrams
 ├── docker-compose.yml              # Local container environment (PostgreSQL + Redis + App)
 ├── Dockerfile                      # Multi-stage production container build
 ├── Makefile                        # Automation commands
@@ -136,7 +185,7 @@ flashcart/
 
 ---
 
-## ⚡ 6. Local Development & Setup
+## ⚡ 7. Local Development & Setup
 
 ### Prerequisites
 - Go 1.24+ installed
@@ -173,7 +222,7 @@ flashcart/
 
 ---
 
-## 🚦 7. Engineering Phase Roadmap
+## 🚦 8. Engineering Phase Roadmap
 
 | Phase | Description | Status |
 |---|---|---|
@@ -184,7 +233,7 @@ flashcart/
 
 ---
 
-## 📊 8. Endpoints & API Reference
+## 📊 9. Endpoints & API Reference
 
 ### System & Health Probes
 
