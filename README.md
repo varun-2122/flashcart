@@ -3,24 +3,27 @@
 > **High-Performance, Production-Grade E-Commerce Backend written in Go, implementing Clean Architecture, Domain-Driven Design (DDD), and Event-Driven Asynchronous Processing.**
 
 [![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
-[![Deployment Status](https://img.shields.io/badge/Deployment-Live%20on%20Render-brightgreen?style=flat&logo=render)](https://flashcart-api-bob1.onrender.com)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20DDD-orange)](#-1-system-architecture)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20DDD-orange)](#-1-system-architecture-block-diagram)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
----
-
-## 🌐 Live Production API Links
-
-- 🔗 **Live Backend Engine**: [https://flashcart-api-bob1.onrender.com](https://flashcart-api-bob1.onrender.com)
-- 💚 **Liveness Probe (`/healthz`)**: [https://flashcart-api-bob1.onrender.com/healthz](https://flashcart-api-bob1.onrender.com/healthz)
-- ⚡ **Deep Readiness Probe (`/readyz`)**: [https://flashcart-api-bob1.onrender.com/readyz](https://flashcart-api-bob1.onrender.com/readyz)
-- 📡 **K8s Probe (`/livez`)**: [https://flashcart-api-bob1.onrender.com/livez](https://flashcart-api-bob1.onrender.com/livez)
 
 ---
 
 ## 💡 Overview & Engineering Objectives
 
-FlashCart is a **production-grade e-commerce backend system** written in **Go**. Built for high throughput, strict request execution bounds, resilient database pooling, and observable event processing, FlashCart simulates how companies like **Google, Uber, Amazon, and Rubrik** design distributed backend services.
+FlashCart is a **production-grade e-commerce backend system** written in **Go**. Built for high throughput, strict request execution bounds, resilient database pooling, and observable event processing, FlashCart simulates how modern engineering teams at companies like **Google, Uber, Amazon, and Rubrik** design distributed backend services.
+
+### Core Engineering Features
+- **Clean Architecture & DDD**: Strict layer isolation (Client → Middleware → Handler → Service → Repository → Database/Cache).
+- **High Concurrency & Low Latency**: Native Go `net/http` multiplexing with zero-allocation `log/slog` JSON logging.
+- **Resilient Connection Pooling**: PostgreSQL connection management via `pgx/v5` (`pgxpool`) and Redis caching via `go-redis/v9`.
+- **Fault-Tolerant Middleware Pipeline**:
+  - `RequestID`: Trace propagation with `X-Request-ID`.
+  - `Recovery`: Panic safety recovering from runtime panics without dropping server execution.
+  - `Timeout`: Strict request execution boundary via `context.WithTimeout`.
+  - `Logger`: Structured JSON metrics (latency, HTTP status, client IP, payload bytes).
+- **Optimistic Concurrency Control**: Stock reservation with versioned database locks preventing race conditions during flash sales.
+- **Unit of Work Transactions**: Multi-table order processing inside atomic PostgreSQL transactions (`pgx.Tx`).
+- **Observability Probes**: System liveness (`/livez`), health (`/healthz`), and deep readiness (`/readyz`) endpoints.
 
 ---
 
@@ -74,18 +77,19 @@ Client (HTTP POST /orders)
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 4. Tech Stack
 
-- **Backend**: Go 1.24+ (Standard Library, `net/http`)
-- **Database**: PostgreSQL 16 (`jackc/pgx/v5` with connection pooling via `pgxpool`)
+- **Language & Runtime**: Go 1.24+ (Standard Library, `net/http`)
+- **Database**: PostgreSQL 16 (`jackc/pgx/v5` connection pooling via `pgxpool`)
 - **Cache**: Redis 7 (`redis/go-redis/v9`)
-- **Containerization**: Docker, Docker Compose
+- **Security**: JWT (`golang-jwt/jwt/v5`), Bcrypt password hashing (`golang.org/x/crypto`)
+- **Containerization & Dev Tooling**: Docker, Docker Compose, Makefile
 - **DevOps**: GitHub Actions CI/CD Pipeline
 - **Observability**: Prometheus (`/metrics`), Grafana, OpenTelemetry, `slog` JSON Logging
 
 ---
 
-## 📂 Clean Architecture Directory Structure
+## 📂 5. Clean Architecture Directory Structure
 
 ```text
 flashcart/
@@ -95,7 +99,7 @@ flashcart/
 ├── internal/
 │   ├── config/config.go            # Environment configuration & timeout controls
 │   ├── logger/logger.go            # Structured JSON logger with Context Trace IDs
-│   ├── database/                   # PostgreSQL connection pool & migrations runner
+│   ├── database/                   # PostgreSQL connection pool & schema migrations
 │   │   ├── postgres.go
 │   │   └── migrations.go
 │   ├── cache/redis.go              # Redis cache connection manager
@@ -123,7 +127,6 @@ flashcart/
 │   └── migrations/                 # DDL SQL Schema Migration Scripts
 ├── docs/
 │   └── architecture/               # Excalidraw architecture & sequence diagrams
-├── render.yaml                     # Infrastructure as Code (1-Click Cloud Blueprint)
 ├── docker-compose.yml              # Local container environment (PostgreSQL + Redis + App)
 ├── Dockerfile                      # Multi-stage production container build
 ├── Makefile                        # Automation commands
@@ -133,38 +136,55 @@ flashcart/
 
 ---
 
-## 🚦 Engineering Phase Roadmap
+## ⚡ 6. Local Development & Setup
+
+### Prerequisites
+- Go 1.24+ installed
+- Docker & Docker Compose (Optional for local PostgreSQL and Redis containers)
+
+### Quick Start
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/varun-2122/flashcart.git
+   cd flashcart
+   ```
+
+2. **Configure Environment Variables**
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Start Storage Services (PostgreSQL & Redis)**
+   ```bash
+   # Using Docker Compose
+   make docker-up
+   ```
+
+4. **Run the Backend Engine**
+   ```bash
+   make run
+   ```
+
+5. **Execute Unit Test Suite**
+   ```bash
+   make test
+   ```
+
+---
+
+## 🚦 7. Engineering Phase Roadmap
 
 | Phase | Description | Status |
 |---|---|---|
 | **Phase 1** | Core Infrastructure Foundation (Clean Architecture, Config, Structured `slog` Logger, Postgres `pgxpool`, Redis Client, Health Probes, Graceful Teardown, Docker Compose) | ✅ **Completed** |
 | **Phase 2** | Domain Engineering & Core Modules (JWT Auth, Refresh Tokens, Product Catalog, Inventory Optimistic Locking, Cart, Order DB Transactions) | ✅ **Completed** |
 | **Phase 3** | Concurrency Engine & Business Observability (Go Worker Pools, Prometheus `/metrics`, Grafana Business Dashboard) | ⏳ **Next** |
-| **Phase 4** | Production Observability & Deployment (OpenTelemetry Tracing, GitHub Actions CI/CD Pipeline, Kubernetes & Helm Deployment) | 🔜 Planned |
+| **Phase 4** | Production Observability & Cloud Native (OpenTelemetry Tracing, GitHub Actions CI/CD Pipeline, Kubernetes & Helm Deployment) | 🔜 Planned |
 
 ---
 
-## 🌐 🌟 Best Deployment Mode: Free 1-Click Cloud Deployment (Render / Railway)
-
-This repository includes a production Infrastructure-as-Code blueprint (`render.yaml`). It automatically provisions:
-1. **FlashCart Go API Web Service** (Containerized Docker runtime)
-2. **Managed Cloud PostgreSQL Database**
-3. **Managed Cloud Redis Cache**
-
-### Steps for 1-Click Cloud Deployment
-
-1. Go to [render.com](https://render.com) and log in with your **GitHub account (`varun-2122`)**.
-2. Click **New +** → Select **Blueprint**.
-3. Connect your GitHub repository `https://github.com/varun-2122/flashcart`.
-4. Render will automatically read `render.yaml` and launch:
-   - Go Backend API Service
-   - PostgreSQL Database
-   - Redis Instance
-5. Click **Apply**. Within 2 minutes, your live production HTTPS API will be active at [https://flashcart-api-bob1.onrender.com](https://flashcart-api-bob1.onrender.com)!
-
----
-
-## 📊 Endpoints & API Reference
+## 📊 8. Endpoints & API Reference
 
 ### System & Health Probes
 
