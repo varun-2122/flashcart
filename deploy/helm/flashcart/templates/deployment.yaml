@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "flashcart.fullname" . }}
+  labels:
+    {{- include "flashcart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "flashcart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "flashcart.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: APP_ENV
+              value: {{ .Values.app.env }}
+            - name: APP_PORT
+              value: {{ .Values.service.port | quote }}
+            - name: DB_HOST
+              value: {{ include "flashcart.fullname" . }}-postgres
+            - name: DB_PORT
+              value: {{ .Values.postgres.port | quote }}
+            - name: DB_USER
+              value: {{ .Values.postgres.user }}
+            - name: DB_PASSWORD
+              value: {{ .Values.postgres.password }}
+            - name: DB_NAME
+              value: {{ .Values.postgres.db }}
+            - name: REDIS_HOST
+              value: {{ include "flashcart.fullname" . }}-redis
+            - name: REDIS_PORT
+              value: {{ .Values.redis.port | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.app.logLevel }}
+            - name: LOG_FORMAT
+              value: json
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

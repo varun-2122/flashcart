@@ -7,10 +7,15 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 	"time"
 
 	"github.com/varun-2122/flashcart/internal/logger"
+	"github.com/varun-2122/flashcart/internal/metrics"
 	"github.com/varun-2122/flashcart/internal/response"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 // Middleware type alias for standard HTTP middleware functions.
@@ -159,5 +164,63 @@ func CORS(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+// Metrics middleware instruments every HTTP request with Prometheus counters and
+// latency histograms, labelled by HTTP method, path pattern, and status code.
+func Metrics(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		wrapper := &responseWriterInterceptor{ResponseWriter: w, statusCode: http.StatusOK}
+
+		next.ServeHTTP(wrapper, r)
+
+		duration := time.Since(start).Seconds()
+		path := r.URL.Path
+		method := r.Method
+		status := strconv.Itoa(wrapper.statusCode)
+
+		metrics.HTTPRequestsTotal.WithLabelValues(method, path, status).Inc()
+		metrics.HTTPRequestDuration.WithLabelValues(method, path).Observe(duration)
+	})
+}
+
+// Tracing middleware intercepts HTTP requests, extracts any parent traces from headers,
+// and starts a new OpenTelemetry span for the HTTP handler.
+func Tracing(next http.Handler) http.Handler {
+	tracer := otel.Tracer("flashcart-http")
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Extract incoming trace context from HTTP headers
+		ctx := otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header))
+
+		spanName := fmt.Sprintf("%s %s", r.Method, r.URL.Path)
+		ctx, span := tracer.Start(ctx, spanName)
+		defer span.End()
+
+		// Add basic HTTP attributes
+		span.SetAttributes(
+			attribute.String("http.method", r.Method),
+			attribute.String("http.url", r.URL.String()),
+			attribute.String("http.route", r.URL.Path),
+		)
+
+		// Create a response writer interceptor to capture the status code
+		wrapper := &responseWriterInterceptor{ResponseWriter: w, statusCode: http.StatusOK}
+
+		// Inject trace ID into request logger context if logger supports it
+		if spanContext := span.SpanContext(); spanContext.IsValid() {
+			traceID := spanContext.TraceID().String()
+			w.Header().Set("X-Trace-ID", traceID)
+			ctx = context.WithValue(ctx, logger.RequestIDKey, traceID)
+		}
+
+		next.ServeHTTP(wrapper, r.WithContext(ctx))
+
+		span.SetAttributes(attribute.Int("http.status_code", wrapper.statusCode))
+		if wrapper.statusCode >= 500 {
+			span.SetAttributes(attribute.Bool("error", true))
+		}
 	})
 }

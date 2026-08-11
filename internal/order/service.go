@@ -8,6 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/varun-2122/flashcart/internal/domain"
 	"github.com/varun-2122/flashcart/internal/logger"
+	"github.com/varun-2122/flashcart/internal/metrics"
+	"github.com/varun-2122/flashcart/internal/worker"
 )
 
 type OrderService struct {
@@ -15,6 +17,7 @@ type OrderService struct {
 	cartRepo      domain.CartRepository
 	inventoryRepo domain.InventoryRepository
 	productRepo   domain.ProductRepository
+	workerPool    *worker.Pool
 }
 
 func NewOrderService(
@@ -22,12 +25,14 @@ func NewOrderService(
 	cartRepo domain.CartRepository,
 	inventoryRepo domain.InventoryRepository,
 	productRepo domain.ProductRepository,
+	workerPool *worker.Pool,
 ) *OrderService {
 	return &OrderService{
 		orderRepo:     orderRepo,
 		cartRepo:      cartRepo,
 		inventoryRepo: inventoryRepo,
 		productRepo:   productRepo,
+		workerPool:    workerPool,
 	}
 }
 
@@ -93,7 +98,27 @@ func (s *OrderService) CreateOrderFromCart(ctx context.Context, userID uuid.UUID
 	// 4. Clear Shopping Cart
 	_ = s.cartRepo.Clear(ctx, userID)
 
+	// 5. Record Business Metrics
+	metrics.OrdersCreated.Inc()
+	metrics.OrderTotalAmount.Observe(totalAmount)
+
 	logger.Info(ctx, "order created successfully", "order_id", orderID.String(), "user_id", userID.String(), "total", totalAmount)
+
+	// 6. Dispatch Async Post-Checkout Jobs (non-blocking)
+	if s.workerPool != nil {
+		s.workerPool.Dispatch(ctx, &worker.OrderCreatedJob{
+			OrderID:   orderID,
+			UserID:    userID,
+			Total:     totalAmount,
+			CreatedAt: now,
+		})
+		s.workerPool.Dispatch(ctx, &worker.InvoiceJob{
+			OrderID: orderID,
+			UserID:  userID,
+			Total:   totalAmount,
+		})
+	}
+
 	return order, nil
 }
 

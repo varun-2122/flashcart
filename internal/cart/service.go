@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/varun-2122/flashcart/internal/domain"
+	"github.com/varun-2122/flashcart/internal/metrics"
 )
 
 type AddItemRequest struct {
@@ -59,6 +60,11 @@ func (s *CartService) AddItem(ctx context.Context, userID uuid.UUID, req AddItem
 
 	if err := s.cartRepo.Save(ctx, cart); err != nil {
 		return nil, err
+	}
+
+	// Track cart engagement metric for new unique items only
+	if !found {
+		metrics.CartItemsAdded.Inc()
 	}
 
 	return cart, nil

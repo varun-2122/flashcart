@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/varun-2122/flashcart/internal/database"
 	"github.com/varun-2122/flashcart/internal/domain"
+	"github.com/varun-2122/flashcart/internal/metrics"
 )
 
 type PostgresInventoryRepository struct {
@@ -73,8 +74,10 @@ func (r *PostgresInventoryRepository) ReserveStockWithOptimisticLock(ctx context
 			return domain.ErrInsufficientStock
 		}
 		if existing.Version != currentVersion {
+			metrics.InventoryLockConflicts.Inc()
 			return domain.ErrOptimisticLockConflict
 		}
+		metrics.InventoryLockConflicts.Inc()
 		return domain.ErrOptimisticLockConflict
 	}
 

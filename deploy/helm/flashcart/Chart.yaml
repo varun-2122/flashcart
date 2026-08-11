@@ -1,0 +1,6 @@
+apiVersion: v2
+name: flashcart
+description: A Helm chart for deploying FlashCart API Engine, Postgres, and Redis
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
