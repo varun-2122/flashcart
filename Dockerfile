@@ -30,6 +30,7 @@ RUN apk --no-cache add ca-certificates tzdata && \
     addgroup -S flashcart && adduser -S flashcart -G flashcart
 
 COPY --from=builder /app/bin/server /app/server
+COPY --from=builder /app/web /app/web
 
 USER flashcart
 
