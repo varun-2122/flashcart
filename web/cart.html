@@ -37,9 +37,20 @@
             <div class="flex items-center gap-2">
                 <h2 class="text-xl font-semibold">Your Cart</h2>
             </div>
-            <button onclick="window.location.href='/index.html'" class="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+            <div class="flex items-center gap-md">
+                <button id="themeToggle" onclick="toggleTheme()" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded">
+                    <span class="material-symbols-outlined" id="themeIcon">light_mode</span>
+                </button>
+                <button id="authBtn" onclick="window.location.href='/auth.html'" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </button>
+                <button id="logoutBtn" onclick="logout()" class="hidden text-on-surface-variant hover:text-red-400 transition-colors duration-200 volt-glow rounded">
+                    <span class="material-symbols-outlined">logout</span>
+                </button>
+                <button onclick="window.location.href='/index.html'" class="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
         </header>
 
         <!-- Cart Items -->

@@ -9,6 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"time"
+
+	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/varun-2122/flashcart/internal/auth"
 	"github.com/varun-2122/flashcart/internal/cache"
@@ -69,6 +72,9 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 	if db != nil && db.Pool != nil {
 		// Run DB migrations automatically
 		_ = db.RunMigrations(context.Background())
+
+		// Auto-seed database if empty
+		seedDatabase(context.Background(), db)
 
 		// Setup Repositories
 		userRepo := user.NewPostgresUserRepository(db)
@@ -208,4 +214,76 @@ func (s *Server) Start(ctx context.Context) error {
 
 	logger.Info(shutdownCtx, "flashcart server gracefully stopped")
 	return nil
+}
+
+func seedDatabase(ctx context.Context, db *database.PostgresDB) {
+	var count int
+	err := db.Pool.QueryRow(ctx, "SELECT count(*) FROM products").Scan(&count)
+	if err != nil || count > 0 {
+		return
+	}
+
+	logger.Info(ctx, "database is empty, injecting seed products...")
+
+	products := []domain.Product{
+		{
+			ID:          uuid.New(),
+			SKU:         "TACT-APEX-01",
+			Name:        "Apex Daypack",
+			Description: "Elite tactical backpack for urban and wilderness environments.",
+			Price:       129.99,
+			Brand:       "Ignition",
+			IsActive:    true,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		},
+		{
+			ID:          uuid.New(),
+			SKU:         "TACT-CHRON-02",
+			Name:        "Chronos Prime Watch",
+			Description: "Military-grade tactical smartwatch with GPS and altimeter.",
+			Price:       299.50,
+			Brand:       "Ignition",
+			IsActive:    true,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		},
+		{
+			ID:          uuid.New(),
+			SKU:         "TACT-GHOST-03",
+			Name:        "Ghost Shell Jacket",
+			Description: "Waterproof, breathable tactical jacket with hidden compartments.",
+			Price:       189.00,
+			Brand:       "Ignition",
+			IsActive:    true,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		},
+		{
+			ID:          uuid.New(),
+			SKU:         "TACT-LUMEN-04",
+			Name:        "Lumen X Torch",
+			Description: "1000 lumen tactical flashlight with strobe and SOS modes.",
+			Price:       49.99,
+			Brand:       "Ignition",
+			IsActive:    true,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		},
+	}
+
+	for _, p := range products {
+		_, err := db.Pool.Exec(ctx, `
+			INSERT INTO products (id, sku, name, description, price, brand, is_active, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		`, p.ID, p.SKU, p.Name, p.Description, p.Price, p.Brand, p.IsActive, p.CreatedAt, p.UpdatedAt)
+
+		if err == nil {
+			// Insert initial inventory of 100 units
+			_, _ = db.Pool.Exec(ctx, `
+				INSERT INTO inventory (product_id, available_stock, reserved_stock, version, updated_at)
+				VALUES ($1, 100, 0, 1, $2)
+			`, p.ID, time.Now())
+		}
+	}
 }

@@ -87,8 +87,14 @@
                         <span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
                     </span>
                 </button>
-                <button onclick="window.location.href='/auth.html'" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded">
+                <button id="themeToggle" onclick="toggleTheme()" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded">
+                    <span class="material-symbols-outlined" id="themeIcon">light_mode</span>
+                </button>
+                <button id="authBtn" onclick="window.location.href='/auth.html'" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded">
                     <span class="material-symbols-outlined">account_circle</span>
+                </button>
+                <button id="logoutBtn" onclick="logout()" class="hidden text-on-surface-variant hover:text-red-400 transition-colors duration-200 volt-glow rounded">
+                    <span class="material-symbols-outlined">logout</span>
                 </button>
             </div>
         </div>
@@ -109,7 +115,7 @@
                     Access elite tactical equipment before the window closes. Limited stock, absolute performance.
                 </p>
                 <div>
-                    <button class="bg-primary text-on-primary font-label-caps text-label-caps px-lg py-sm rounded volt-glow transition-all uppercase tracking-wider">
+                    <button onclick="document.getElementById('products').scrollIntoView({behavior: 'smooth'})" class="bg-primary text-on-primary font-label-caps text-label-caps px-lg py-sm rounded volt-glow transition-all uppercase tracking-wider">
                         Explore Collection
                     </button>
                 </div>
@@ -144,7 +150,7 @@
         </section>
 
         <!-- Product Grid -->
-        <section>
+        <section id="products" class="scroll-mt-24">
             <div class="flex flex-wrap items-center justify-between gap-md mb-lg border-b border-white/5 pb-md">
                 <div class="flex gap-xs">
                     <button class="font-label-caps text-label-caps px-sm py-xs border border-primary text-primary rounded bg-primary/10">ALL</button>
