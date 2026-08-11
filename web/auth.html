@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Sign In - IGNITION</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap');
+    </style>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#111415",
+                        "primary": "#b4c5ff",
+                        "on-surface": "#e2e2e4",
+                        "background": "#111415",
+                        "surface-container": "#1e2021",
+                        "on-surface-variant": "#c3c6d8",
+                    },
+                    "fontFamily": {
+                        "data-mono-lg": ["Geist Mono"],
+                        "data-mono-md": ["Geist Mono"],
+                        "label-caps": ["Geist Mono"],
+                        "body-md": ["Geist"],
+                        "display-lg": ["Geist"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .glass-panel {
+                @apply bg-surface-container/50 backdrop-blur-xl border border-white/5;
+            }
+            .volt-gradient {
+                background: linear-gradient(90deg, #2F6FFF 0%, #A63CFF 100%);
+            }
+            .input-minimal {
+                @apply bg-transparent border-0 border-b border-white/10 text-on-surface font-body-md focus:ring-0 focus:border-primary px-0 py-2 transition-colors outline-none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col antialiased">
+    <main class="flex-grow flex items-center justify-center p-4 relative z-10">
+        <div class="glass-panel w-full max-w-md rounded-xl p-10 relative z-10 overflow-hidden group">
+            <div class="absolute top-0 left-0 w-full h-[2px] volt-gradient opacity-80"></div>
+            <div class="mb-10 text-center">
+                <h1 class="font-display-lg text-4xl tracking-tighter text-primary mb-2">IGNITION</h1>
+                <p class="font-label-caps text-xs text-on-surface-variant uppercase">Secure Authentication</p>
+            </div>
+            
+            <form class="flex flex-col gap-6" id="signinForm" onsubmit="handleLogin(event)">
+                <div class="relative group/input">
+                    <input class="input-minimal w-full" id="email" placeholder="Email Address" required="" type="email"/>
+                </div>
+                <div class="relative group/input">
+                    <input class="input-minimal w-full" id="password" placeholder="Password" required="" type="password"/>
+                </div>
+                <button class="w-full volt-gradient text-background font-data-mono-md py-3 rounded mt-4 hover:opacity-90 transition-opacity" type="submit">
+                    Authenticate
+                </button>
+                <div id="authError" class="text-red-400 text-sm mt-2 hidden text-center"></div>
+            </form>
+        </div>
+    </main>
+    <script src="/js/app.js"></script>
+</body>
+</html>

@@ -47,11 +47,9 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 	mux.HandleFunc("GET /livez", healthHandler.Livez)
 	mux.HandleFunc("GET /readyz", healthHandler.Readyz)
 
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"name":"FlashCart API Engine","version":"v3.0.0","status":"operational"}`))
-	})
+	// Serve static frontend files from 'web' directory
+	fs := http.FileServer(http.Dir("web"))
+	mux.Handle("/", fs)
 
 	// 2. Prometheus Metrics Scrape Endpoint
 	mux.Handle("GET /metrics", promhttp.Handler())

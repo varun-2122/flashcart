@@ -32,3 +32,8 @@ grafana:
 jaeger:
 	@echo "Opening Jaeger Tracing UI at http://localhost:16686"
 	@start http://localhost:16686 2>/dev/null || open http://localhost:16686
+
+# Phase 5: Frontend UI
+frontend:
+	@echo "Starting frontend server at http://localhost:3000"
+	@cd web && npx serve -p 3000 2>/dev/null || python -m http.server 3000
