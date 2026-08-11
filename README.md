@@ -14,8 +14,10 @@ FlashCart is a **production-grade backend system** engineered to demonstrate top
 
 ### Core Engineering Principles
 - **Clean Architecture & DDD**: Strict isolation between HTTP transport handlers, domain business services, and database persistence layers.
-- **Optimistic Concurrency Control**: Stock reservations executed with versioned database locks (`WHERE product_id = $1 AND version = $2`), preventing race conditions during flash sales.
-- **Transactional Unit of Work**: Multi-table order processing executed inside atomic PostgreSQL transactions (`pgx.Tx`), ensuring zero partial writes.
+- **Product & Inventory Service**: Product catalog management with optimistic concurrency control for high-volume flash sales.
+- **Cart & Order Service**: Redis-backed shopping carts and transactional order processing.
+- **Authentication**: JWT-based stateless authentication with Role-Based Access Control (RBAC), and Google OAuth 2.0 Identity Services.
+- **Background Workers**: Dedicated goroutine pools for asynchronous tasks (e.g., email notifications).
 - **Fault-Tolerant Middleware Pipeline**: Request ID propagation, panic safety recovery, and strict 5-second context timeout boundaries.
 - **Zero-Allocation Observability**: High-throughput structured JSON logging using Go standard `log/slog`.
 
@@ -230,6 +232,8 @@ flashcart/
 | **Phase 2** | Domain Engineering & Core Modules (JWT Auth, Refresh Tokens, Product Catalog, Inventory Optimistic Locking, Cart, Order DB Transactions) | ✅ **Completed** |
 | **Phase 3** | Concurrency Engine & Business Observability (Go Worker Pools, Prometheus `/metrics`, Grafana Business Dashboard) | ✅ **Completed** |
 | **Phase 4** | Production Observability & Cloud Native (OpenTelemetry Tracing, GitHub Actions CI/CD Pipeline, Kubernetes & Helm Deployment) | ✅ **Completed** |
+| **Phase 5** | Frontend UI Integration (Stitch/Glassmorphism Design) | ✅ **Completed** |
+| **Phase 6** | Google OAuth Integration (Identity Services & Token Verification) | ✅ **Completed** |
 
 ---
 

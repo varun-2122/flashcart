@@ -80,7 +80,7 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 
 		// Setup Security
 		jwtManager := auth.NewJWTManager("", cfg.App.RequestTimeout*100)
-		authService := auth.NewAuthService(userRepo, jwtManager)
+		authService := auth.NewAuthService(userRepo, jwtManager, cfg.App.GoogleClientID)
 		authHandler := auth.NewAuthHandler(authService)
 
 		authMiddleware := auth.AuthMiddleware(jwtManager)
@@ -98,6 +98,7 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 		// Auth Routes
 		mux.HandleFunc("POST /api/v1/auth/register", authHandler.Register)
 		mux.HandleFunc("POST /api/v1/auth/login", authHandler.Login)
+		mux.HandleFunc("POST /api/v1/auth/google", authHandler.GoogleLogin)
 
 		// Product Routes
 		mux.HandleFunc("GET /api/v1/products", productHandler.ListProducts)

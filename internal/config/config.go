@@ -26,6 +26,7 @@ type AppConfig struct {
 	IdleTimeout     time.Duration
 	ShutdownTimeout time.Duration
 	RequestTimeout  time.Duration
+	GoogleClientID  string
 }
 
 // DBConfig defines PostgreSQL pool settings.
@@ -71,6 +72,7 @@ func Load() (*Config, error) {
 			IdleTimeout:     getDurationEnv("APP_IDLE_TIMEOUT", 60*time.Second),
 			ShutdownTimeout: getDurationEnv("APP_SHUTDOWN_TIMEOUT", 10*time.Second),
 			RequestTimeout:  getDurationEnv("APP_REQUEST_TIMEOUT", 5*time.Second),
+			GoogleClientID:  getEnv("GOOGLE_CLIENT_ID", ""),
 		},
 		Database: DBConfig{
 			Host:            getEnv("DB_HOST", "localhost"),

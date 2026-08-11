@@ -61,6 +61,26 @@ async function handleLogin(event) {
     }
 }
 
+async function handleGoogleLogin(response) {
+    const errorDiv = document.getElementById('authError');
+    try {
+        const res = await fetch(`${API_BASE}/auth/google`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential: response.credential })
+        });
+        
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Google Login failed');
+        
+        localStorage.setItem('token', data.token);
+        window.location.href = '/index.html';
+    } catch (error) {
+        errorDiv.textContent = error.message;
+        errorDiv.classList.remove('hidden');
+    }
+}
+
 // Cart Logic
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 

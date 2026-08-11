@@ -6,6 +6,7 @@
     <title>Sign In - IGNITION</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap');
     </style>
@@ -56,6 +57,31 @@
                 <p class="font-label-caps text-xs text-on-surface-variant uppercase">Secure Authentication</p>
             </div>
             
+            <div class="flex justify-center mb-6">
+                <!-- Replace 'YOUR_GOOGLE_CLIENT_ID' with the actual client ID -->
+                <div id="g_id_onload"
+                     data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                     data-context="signin"
+                     data-ux_mode="popup"
+                     data-callback="handleGoogleLogin"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="signin_with"
+                     data-size="large"
+                     data-logo_alignment="left">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-px bg-white/10 flex-1"></div>
+                <span class="text-xs text-on-surface-variant uppercase font-label-caps">OR EMAIL</span>
+                <div class="h-px bg-white/10 flex-1"></div>
+            </div>
+
             <form class="flex flex-col gap-6" id="signinForm" onsubmit="handleLogin(event)">
                 <div class="relative group/input">
                     <input class="input-minimal w-full" id="email" placeholder="Email Address" required="" type="email"/>
