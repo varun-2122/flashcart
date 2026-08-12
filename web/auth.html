@@ -42,6 +42,8 @@
             --color-on-surface: #0f172a;
             --color-on-surface-variant: #64748b;
             --color-primary: #2F6FFF;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.1);
         }
         .dark {
             --color-background: #111415;
@@ -50,16 +52,20 @@
             --color-on-surface: #e2e2e4;
             --color-on-surface-variant: #c3c6d8;
             --color-primary: #b4c5ff;
+            --glass-bg: rgba(30, 32, 33, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.05);
         }
         @layer utilities {
             .glass-panel {
-                @apply bg-surface-container/50 backdrop-blur-xl border border-white/5;
+                background: var(--glass-bg);
+                backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border);
             }
             .volt-gradient {
                 background: linear-gradient(90deg, #2F6FFF 0%, #A63CFF 100%);
             }
             .input-minimal {
-                @apply bg-transparent border-0 border-b border-white/10 text-on-surface font-body-md focus:ring-0 focus:border-primary px-0 py-2 transition-colors outline-none;
+                @apply bg-transparent border-0 border-b border-outline/30 text-on-surface font-body-md focus:ring-0 focus:border-primary px-0 py-2 transition-colors outline-none;
             }
         }
     </style>
@@ -101,9 +107,9 @@
             </div>
 
             <div class="flex items-center gap-4 mb-6">
-                <div class="h-px bg-white/10 flex-1"></div>
+                <div class="h-px bg-outline/30 flex-1"></div>
                 <span class="text-xs text-on-surface-variant uppercase font-label-caps">OR EMAIL</span>
-                <div class="h-px bg-white/10 flex-1"></div>
+                <div class="h-px bg-outline/30 flex-1"></div>
             </div>
 
             <form class="flex flex-col gap-6" id="signinForm" onsubmit="handleLogin(event)">

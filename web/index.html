@@ -69,6 +69,8 @@
             --color-secondary: #A63CFF;
             --color-outline: #cbd5e1;
             --color-outline-variant: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.1);
         }
         .dark {
             --color-background: #0A0A0A;
@@ -82,9 +84,11 @@
             --color-secondary: #A63CFF;
             --color-outline: #8d90a1;
             --color-outline-variant: #424655;
+            --glass-bg: rgba(23, 23, 27, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.05);
         }
         .volt-glow:hover { box-shadow: 0 0 15px rgba(47, 111, 255, 0.15); }
-        .glass-panel { background: rgba(23, 23, 27, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); }
         .countdown-figures { font-variant-numeric: tabular-nums; }
         .ignition-strip { background: linear-gradient(to right, #2F6FFF, #A63CFF); }
         .group:hover .reveal-btn { opacity: 1; transform: translateY(0); }
@@ -92,7 +96,7 @@
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col antialiased">
     <!-- TopNavBar -->
-    <header class="bg-surface/80 backdrop-blur-xl border-b border-white/5 shadow-sm fixed top-0 w-full z-50">
+    <header class="bg-surface/80 backdrop-blur-xl border-b border-outline/20 shadow-sm fixed top-0 w-full z-50">
         <div class="flex justify-between items-center px-margin-desktop py-4 max-w-[1440px] mx-auto w-full">
             <div class="font-display-lg text-display-lg font-bold tracking-tighter text-primary">
                 FLASHCART
@@ -177,7 +181,7 @@
 
         <!-- Product Grid -->
         <section id="products" class="scroll-mt-24">
-            <div class="flex flex-wrap items-center justify-between gap-md mb-lg border-b border-white/5 pb-md">
+            <div class="flex flex-wrap items-center justify-between gap-md mb-lg border-b border-outline/20 pb-md">
                 <div class="flex gap-xs">
                     <button class="font-label-caps text-label-caps px-sm py-xs border border-primary text-primary rounded bg-primary/10">ALL</button>
                 </div>
@@ -190,7 +194,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-surface-container-lowest border-t border-white/5 w-full relative">
+    <footer class="bg-surface-container-lowest border-t border-outline/20 w-full relative">
         <div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop py-xl max-w-[1440px] mx-auto w-full gap-lg">
             <div class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tighter">
                 FLASHCART

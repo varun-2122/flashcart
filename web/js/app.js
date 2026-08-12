@@ -54,7 +54,7 @@ async function fetchProducts() {
         if (!grid) return;
 
         grid.innerHTML = products.map(p => `
-            <div class="bg-surface-container border border-white/5 rounded relative group overflow-hidden volt-glow transition-shadow">
+            <div class="bg-surface-container border border-outline/20 rounded relative group overflow-hidden volt-glow transition-shadow">
                 <div class="absolute top-0 left-0 w-full h-[2px] bg-primary"></div>
                 <div class="h-48 relative overflow-hidden bg-surface flex items-center justify-center p-4">
                     <span class="material-symbols-outlined text-6xl text-gray-500 group-hover:text-primary transition-colors">inventory_2</span>
@@ -151,7 +151,7 @@ async function loadCart() {
     // For simplicity, we just show Product IDs in this demo.
     // In a full app, we'd fetch product details by ID or hydrate the cart.
     container.innerHTML = cart.map(item => `
-        <div class="flex gap-4 bg-surface-container/50 p-4 rounded-lg border border-white/5">
+        <div class="flex gap-4 bg-surface-container/50 p-4 rounded-lg border border-outline/20">
             <div class="w-16 h-16 bg-gray-800 rounded flex items-center justify-center">
                 <span class="material-symbols-outlined text-gray-500">inventory_2</span>
             </div>

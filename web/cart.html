@@ -48,8 +48,8 @@
     <div class="fixed inset-0 bg-surface/80 backdrop-blur-md z-40"></div>
     
     <!-- Cart Drawer -->
-    <aside class="fixed right-0 top-0 h-full w-full md:w-[480px] bg-[#17171B] z-[60] border-l border-white/10 flex flex-col">
-        <header class="flex justify-between items-center p-6 border-b border-white/5">
+    <aside class="fixed right-0 top-0 h-full w-full md:w-[480px] bg-surface z-[60] border-l border-outline/20 flex flex-col">
+        <header class="flex justify-between items-center p-6 border-b border-outline/20">
             <div class="flex items-center gap-2">
                 <h2 class="text-xl font-semibold">Your Cart</h2>
             </div>
@@ -63,7 +63,7 @@
                 <button id="logoutBtn" onclick="logout()" class="hidden text-on-surface-variant hover:text-red-400 transition-colors duration-200 volt-glow rounded">
                     <span class="material-symbols-outlined">logout</span>
                 </button>
-                <button onclick="window.location.href='/index.html'" class="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5">
+                <button onclick="window.location.href='/index.html'" class="text-gray-400 hover:text-on-surface transition-colors p-2 rounded-full hover:bg-outline/10">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
@@ -75,7 +75,7 @@
         </div>
 
         <!-- Footer / Checkout -->
-        <div class="p-6 border-t border-white/5 bg-[#17171B]">
+        <div class="p-6 border-t border-outline/20 bg-surface">
             <div class="flex justify-between items-center mb-6">
                 <span class="text-gray-400">Subtotal</span>
                 <span id="cartSubtotal" class="text-2xl font-mono font-semibold text-primary">$0.00</span>
