@@ -13,17 +13,17 @@
             theme: {
                 extend: {
                     "colors": {
-                        "surface": "#0A0A0A",
-                        "on-primary": "#0A0A0A",
-                        "outline": "#8d90a1",
-                        "secondary": "#A63CFF",
-                        "primary": "#2F6FFF",
-                        "on-surface": "#e2e2e4",
-                        "background": "#0A0A0A",
-                        "outline-variant": "#424655",
-                        "surface-container": "#17171B",
-                        "on-surface-variant": "#c3c6d8",
-                        "surface-container-lowest": "#0c0e10"
+                        "surface": "var(--color-surface)",
+                        "on-primary": "var(--color-on-primary)",
+                        "outline": "var(--color-outline)",
+                        "secondary": "var(--color-secondary)",
+                        "primary": "var(--color-primary)",
+                        "on-surface": "var(--color-on-surface)",
+                        "background": "var(--color-background)",
+                        "outline-variant": "var(--color-outline-variant)",
+                        "surface-container": "var(--color-surface-container)",
+                        "on-surface-variant": "var(--color-on-surface-variant)",
+                        "surface-container-lowest": "var(--color-surface-container-lowest)"
                     },
                     "borderRadius": {
                         "DEFAULT": "0.25rem",
@@ -57,6 +57,32 @@
         }
     </script>
     <style>
+        :root {
+            --color-background: #ffffff;
+            --color-surface: #f8fafc;
+            --color-surface-container: #f1f5f9;
+            --color-surface-container-lowest: #ffffff;
+            --color-on-surface: #0f172a;
+            --color-on-surface-variant: #64748b;
+            --color-primary: #2F6FFF;
+            --color-on-primary: #ffffff;
+            --color-secondary: #A63CFF;
+            --color-outline: #cbd5e1;
+            --color-outline-variant: #94a3b8;
+        }
+        .dark {
+            --color-background: #0A0A0A;
+            --color-surface: #0A0A0A;
+            --color-surface-container: #17171B;
+            --color-surface-container-lowest: #0c0e10;
+            --color-on-surface: #e2e2e4;
+            --color-on-surface-variant: #c3c6d8;
+            --color-primary: #2F6FFF;
+            --color-on-primary: #0A0A0A;
+            --color-secondary: #A63CFF;
+            --color-outline: #8d90a1;
+            --color-outline-variant: #424655;
+        }
         .volt-glow:hover { box-shadow: 0 0 15px rgba(47, 111, 255, 0.15); }
         .glass-panel { background: rgba(23, 23, 27, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
         .countdown-figures { font-variant-numeric: tabular-nums; }

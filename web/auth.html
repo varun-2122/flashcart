@@ -16,12 +16,12 @@
             theme: {
                 extend: {
                     "colors": {
-                        "surface": "#111415",
-                        "primary": "#b4c5ff",
-                        "on-surface": "#e2e2e4",
-                        "background": "#111415",
-                        "surface-container": "#1e2021",
-                        "on-surface-variant": "#c3c6d8",
+                        "surface": "var(--color-surface)",
+                        "primary": "var(--color-primary)",
+                        "on-surface": "var(--color-on-surface)",
+                        "background": "var(--color-background)",
+                        "surface-container": "var(--color-surface-container)",
+                        "on-surface-variant": "var(--color-on-surface-variant)",
                     },
                     "fontFamily": {
                         "data-mono-lg": ["Geist Mono"],
@@ -35,6 +35,22 @@
         }
     </script>
     <style type="text/tailwindcss">
+        :root {
+            --color-background: #ffffff;
+            --color-surface: #f8fafc;
+            --color-surface-container: #f1f5f9;
+            --color-on-surface: #0f172a;
+            --color-on-surface-variant: #64748b;
+            --color-primary: #2F6FFF;
+        }
+        .dark {
+            --color-background: #111415;
+            --color-surface: #111415;
+            --color-surface-container: #1e2021;
+            --color-on-surface: #e2e2e4;
+            --color-on-surface-variant: #c3c6d8;
+            --color-primary: #b4c5ff;
+        }
         @layer utilities {
             .glass-panel {
                 @apply bg-surface-container/50 backdrop-blur-xl border border-white/5;

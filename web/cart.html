@@ -7,6 +7,22 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <style>
+        :root {
+            --color-background: #ffffff;
+            --color-surface: #f8fafc;
+            --color-surface-container: #f1f5f9;
+            --color-surface-container-high: #e2e8f0;
+            --color-on-surface-variant: #64748b;
+            --color-primary: #2F6FFF;
+        }
+        .dark {
+            --color-background: #111415;
+            --color-surface: #111415;
+            --color-surface-container: #1e2021;
+            --color-surface-container-high: #282a2c;
+            --color-on-surface-variant: #c3c6d8;
+            --color-primary: #b4c5ff;
+        }
         @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap');
     </style>
     <script id="tailwind-config">
@@ -15,19 +31,19 @@
             theme: {
                 extend: {
                     "colors": {
-                        "surface": "#111415",
-                        "primary": "#b4c5ff",
-                        "background": "#111415",
-                        "surface-container": "#1e2021",
-                        "surface-container-high": "#282a2c",
-                        "on-surface-variant": "#c3c6d8",
+                        "surface": "var(--color-surface)",
+                        "primary": "var(--color-primary)",
+                        "background": "var(--color-background)",
+                        "surface-container": "var(--color-surface-container)",
+                        "surface-container-high": "var(--color-surface-container-high)",
+                        "on-surface-variant": "var(--color-on-surface-variant)",
                     }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-background text-white font-body-md min-h-screen relative overflow-hidden">
+<body class="bg-background text-on-surface font-body-md min-h-screen relative overflow-hidden">
     <!-- Dim Overlay -->
     <div class="fixed inset-0 bg-surface/80 backdrop-blur-md z-40"></div>
     
