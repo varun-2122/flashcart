@@ -22,13 +22,13 @@ func (h *ReviewHandler) CreateReview(w http.ResponseWriter, r *http.Request) {
 	productIDStr := r.PathValue("id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
-		response.Error(w, http.StatusBadRequest, "Invalid product ID format", nil)
+		response.ErrorJSON(w, http.StatusBadRequest, "BAD_REQUEST", "Invalid product ID format", nil)
 		return
 	}
 
 	userID, ok := auth.GetUserIDFromContext(r.Context())
 	if !ok {
-		response.Error(w, http.StatusUnauthorized, "Unauthorized", nil)
+		response.ErrorJSON(w, http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized", nil)
 		return
 	}
 
@@ -37,17 +37,17 @@ func (h *ReviewHandler) CreateReview(w http.ResponseWriter, r *http.Request) {
 		Comment string `json:"comment"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.Error(w, http.StatusBadRequest, "Invalid request payload", nil)
+		response.ErrorJSON(w, http.StatusBadRequest, "BAD_REQUEST", "Invalid request payload", nil)
 		return
 	}
 
 	review, err := h.service.CreateReview(r.Context(), productID, userID, req.Rating, req.Comment)
 	if err != nil {
 		if err == domain.ErrInvalidRating {
-			response.Error(w, http.StatusBadRequest, err.Error(), nil)
+			response.ErrorJSON(w, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 			return
 		}
-		response.Error(w, http.StatusInternalServerError, "Failed to create review", err)
+		response.ErrorJSON(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to create review", err)
 		return
 	}
 
@@ -58,13 +58,13 @@ func (h *ReviewHandler) GetReviews(w http.ResponseWriter, r *http.Request) {
 	productIDStr := r.PathValue("id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
-		response.Error(w, http.StatusBadRequest, "Invalid product ID format", nil)
+		response.ErrorJSON(w, http.StatusBadRequest, "BAD_REQUEST", "Invalid product ID format", nil)
 		return
 	}
 
 	reviews, err := h.service.GetProductReviews(r.Context(), productID)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, "Failed to fetch reviews", err)
+		response.ErrorJSON(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to fetch reviews", err)
 		return
 	}
 
