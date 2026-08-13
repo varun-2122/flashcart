@@ -26,8 +26,8 @@ func (h *ReviewHandler) CreateReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := auth.GetUserIDFromContext(r.Context())
-	if err != nil {
+	userID, ok := auth.GetUserIDFromContext(r.Context())
+	if !ok {
 		response.Error(w, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
