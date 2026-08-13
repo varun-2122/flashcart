@@ -24,6 +24,7 @@ import (
 	"github.com/varun-2122/flashcart/internal/middleware"
 	"github.com/varun-2122/flashcart/internal/order"
 	"github.com/varun-2122/flashcart/internal/product"
+	"github.com/varun-2122/flashcart/internal/review"
 	"github.com/varun-2122/flashcart/internal/tracing"
 	"github.com/varun-2122/flashcart/internal/user"
 	"github.com/varun-2122/flashcart/internal/worker"
@@ -83,6 +84,7 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 		invRepo := inventory.NewPostgresInventoryRepository(db)
 		cartRepo := cart.NewRedisCartRepository(redis)
 		orderRepo := order.NewPostgresOrderRepository(db)
+		reviewRepo := review.NewPostgresReviewRepository(db)
 
 		// Setup Security
 		jwtManager := auth.NewJWTManager("", cfg.App.RequestTimeout*100)
@@ -101,6 +103,9 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 		orderService := order.NewOrderService(orderRepo, cartRepo, invRepo, prodRepo, pool)
 		orderHandler := order.NewOrderHandler(orderService)
 
+		reviewService := review.NewReviewService(reviewRepo)
+		reviewHandler := review.NewReviewHandler(reviewService)
+
 		// Auth Routes
 		mux.HandleFunc("POST /api/v1/auth/register", authHandler.Register)
 		mux.HandleFunc("POST /api/v1/auth/login", authHandler.Login)
@@ -114,6 +119,10 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 			authMiddleware,
 			auth.RequireRole(domain.RoleAdmin),
 		))
+		
+		// Review Routes
+		mux.HandleFunc("GET /api/v1/products/{id}/reviews", reviewHandler.GetReviews)
+		mux.Handle("POST /api/v1/products/{id}/reviews", authMiddleware(http.HandlerFunc(reviewHandler.CreateReview)))
 
 		// Cart Routes (Authenticated)
 		mux.Handle("GET /api/v1/cart", authMiddleware(http.HandlerFunc(cartHandler.GetCart)))

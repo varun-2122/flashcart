@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Product - FlashCart</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "var(--color-surface)",
+                        "on-primary": "var(--color-on-primary)",
+                        "outline": "var(--color-outline)",
+                        "secondary": "var(--color-secondary)",
+                        "primary": "var(--color-primary)",
+                        "on-surface": "var(--color-on-surface)",
+                        "background": "var(--color-background)",
+                        "outline-variant": "var(--color-outline-variant)",
+                        "surface-container": "var(--color-surface-container)",
+                        "on-surface-variant": "var(--color-on-surface-variant)",
+                        "surface-container-lowest": "var(--color-surface-container-lowest)"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                    },
+                    "fontFamily": {
+                        "data-mono-lg": ["Geist Mono", "monospace"],
+                        "data-mono-md": ["Geist Mono", "monospace"],
+                        "label-caps": ["Geist Mono", "monospace"],
+                        "body-lg": ["Geist", "sans-serif"],
+                        "display-lg": ["Geist", "sans-serif"],
+                        "body-md": ["Geist", "sans-serif"],
+                        "headline-md": ["Geist", "sans-serif"],
+                        "headline-sm": ["Geist", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --color-background: #ffffff;
+            --color-surface: #f8fafc;
+            --color-surface-container: #f1f5f9;
+            --color-surface-container-lowest: #ffffff;
+            --color-on-surface: #0f172a;
+            --color-on-surface-variant: #64748b;
+            --color-primary: #2F6FFF;
+            --color-on-primary: #ffffff;
+            --color-secondary: #A63CFF;
+            --color-outline: #cbd5e1;
+            --color-outline-variant: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+        .dark {
+            --color-background: #0A0A0A;
+            --color-surface: #0A0A0A;
+            --color-surface-container: #17171B;
+            --color-surface-container-lowest: #0c0e10;
+            --color-on-surface: #e2e2e4;
+            --color-on-surface-variant: #c3c6d8;
+            --color-primary: #2F6FFF;
+            --color-on-primary: #0A0A0A;
+            --color-secondary: #A63CFF;
+            --color-outline: #8d90a1;
+            --color-outline-variant: #424655;
+            --glass-bg: rgba(23, 23, 27, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.05);
+        }
+        .volt-glow:hover { box-shadow: 0 0 15px rgba(47, 111, 255, 0.15); }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col antialiased">
+    <!-- TopNavBar -->
+    <header class="bg-surface/80 backdrop-blur-xl border-b border-outline/20 shadow-sm fixed top-0 w-full z-50">
+        <div class="flex justify-between items-center px-4 md:px-12 py-4 max-w-[1440px] mx-auto w-full">
+            <div class="font-display-lg text-2xl font-bold tracking-tighter text-primary cursor-pointer" onclick="window.location.href='/index.html'">
+                FLASHCART
+            </div>
+            <div class="flex items-center gap-6">
+                <button onclick="window.location.href='/cart.html'" class="text-on-surface-variant hover:text-primary transition-colors duration-200 relative volt-glow rounded">
+                    <span class="material-symbols-outlined">shopping_cart</span>
+                    <span id="cartBadge" class="absolute -top-1 -right-1 flex h-3 w-3 hidden">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                    </span>
+                </button>
+                <button id="themeToggle" onclick="toggleTheme()" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded">
+                    <span class="material-symbols-outlined" id="themeIcon">light_mode</span>
+                </button>
+                <button id="authBtn" onclick="window.location.href='/auth.html'" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </button>
+                <button id="logoutBtn" onclick="logout()" class="hidden text-on-surface-variant hover:text-red-400 transition-colors duration-200 volt-glow rounded">
+                    <span class="material-symbols-outlined">logout</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <main class="flex-1 mt-[80px] max-w-[1440px] mx-auto w-full px-4 md:px-12 py-12">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-20 text-on-surface-variant">
+            <span class="material-symbols-outlined animate-spin text-4xl">progress_activity</span>
+            <p class="mt-4 font-label-caps uppercase">Loading tactical intel...</p>
+        </div>
+
+        <!-- Product Details -->
+        <div id="productContent" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+                <div class="bg-surface-container rounded-lg border border-outline/20 aspect-square flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[12rem] text-outline">inventory_2</span>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <div id="productBrand" class="font-label-caps text-primary tracking-widest uppercase mb-2"></div>
+                    <h1 id="productName" class="font-display-lg text-4xl md:text-5xl mb-4 leading-tight text-on-surface"></h1>
+                    <div id="productPrice" class="font-data-mono-lg text-3xl text-on-surface mb-6"></div>
+                    <p id="productDescription" class="font-body-lg text-on-surface-variant mb-8 leading-relaxed"></p>
+                    
+                    <button id="addToCartBtn" class="bg-primary text-on-primary font-bold py-4 px-8 rounded volt-glow transition-all uppercase tracking-wider flex items-center justify-center gap-3 max-w-sm">
+                        <span class="material-symbols-outlined">shopping_cart</span>
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="border-t border-outline/20 pt-12 mb-16">
+                <h2 class="font-display-lg text-3xl mb-8">Customer Reviews</h2>
+                
+                <!-- Review Form -->
+                <div id="reviewFormContainer" class="bg-surface-container p-6 rounded-lg border border-outline/20 mb-8 hidden">
+                    <h3 class="font-semibold mb-4 text-lg">Write a Review</h3>
+                    <form id="reviewForm" onsubmit="submitReview(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-label-caps text-on-surface-variant mb-2">Rating</label>
+                            <select id="reviewRating" class="w-full bg-surface border border-outline/20 rounded p-2 text-on-surface focus:border-primary outline-none" required>
+                                <option value="5">5 - Excellent</option>
+                                <option value="4">4 - Good</option>
+                                <option value="3">3 - Average</option>
+                                <option value="2">2 - Poor</option>
+                                <option value="1">1 - Terrible</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-label-caps text-on-surface-variant mb-2">Comment</label>
+                            <textarea id="reviewComment" rows="3" class="w-full bg-surface border border-outline/20 rounded p-2 text-on-surface focus:border-primary outline-none" required></textarea>
+                        </div>
+                        <button type="submit" class="bg-primary text-on-primary font-bold py-2 px-6 rounded hover:opacity-90">Submit Review</button>
+                        <div id="reviewError" class="text-red-400 text-sm hidden mt-2"></div>
+                    </form>
+                </div>
+                <div id="loginToReviewPrompt" class="bg-surface-container p-6 rounded-lg border border-outline/20 mb-8 text-center">
+                    <p class="text-on-surface-variant mb-4">You must be logged in to leave a review.</p>
+                    <button onclick="window.location.href='/auth.html'" class="border border-primary text-primary px-4 py-2 rounded hover:bg-primary/10 transition-colors">Sign In</button>
+                </div>
+
+                <!-- Reviews List -->
+                <div id="reviewsList" class="space-y-4">
+                    <p class="text-on-surface-variant">No reviews yet.</p>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="border-t border-outline/20 pt-12">
+                <h2 class="font-display-lg text-3xl mb-8">Recommended For You</h2>
+                <div id="recommendationsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Recommended products injected here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface-container-lowest border-t border-outline/20 w-full mt-auto">
+        <div class="flex flex-col md:flex-row justify-between items-center px-4 md:px-12 py-12 max-w-[1440px] mx-auto w-full gap-8">
+            <div class="font-headline-sm text-xl font-bold tracking-tighter text-on-surface">
+                FLASHCART
+            </div>
+            <div class="font-label-caps text-sm text-on-surface-variant">
+                © 2026 FLASHCART TECHNOLOGIES.
+            </div>
+        </div>
+    </footer>
+    <script src="/js/app.js?v=4"></script>
+</body>
+</html>

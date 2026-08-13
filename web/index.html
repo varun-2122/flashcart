@@ -104,7 +104,7 @@
             <div class="flex-1 max-w-md mx-8 hidden md:block">
                 <div class="relative flex items-center w-full border-b border-outline-variant focus-within:border-primary transition-colors pb-1">
                     <span class="material-symbols-outlined text-on-surface-variant absolute left-0 text-[20px] ml-xs">search</span>
-                    <input class="w-full bg-transparent border-none focus:ring-0 text-on-surface font-body-md pl-lg pr-xs py-base placeholder:text-outline-variant outline-none" placeholder="Search commands..." type="text"/>
+                    <input id="searchInput" oninput="handleSearch(event)" class="w-full bg-transparent border-none focus:ring-0 text-on-surface font-body-md pl-lg pr-xs py-base placeholder:text-outline-variant outline-none" placeholder="Search products..." type="text"/>
                     <div class="absolute right-xs font-data-mono-md text-data-mono-md text-outline-variant text-xs">⌘K</div>
                     <div class="absolute left-0 bottom-[-1px] w-[2px] h-[6px] bg-primary opacity-0 focus-within:opacity-100 transition-opacity"></div>
                 </div>

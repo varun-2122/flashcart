@@ -81,6 +81,18 @@ func (db *PostgresDB) RunMigrations(ctx context.Context) error {
 			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 		);`,
 		`CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);`,
+
+		`CREATE TABLE IF NOT EXISTS reviews (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+			user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+			comment TEXT,
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(product_id, user_id)
+		);`,
+		`CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(product_id);`,
 	}
 
 	for _, query := range queries {
