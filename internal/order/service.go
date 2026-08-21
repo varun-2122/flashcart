@@ -37,7 +37,8 @@ func NewOrderService(
 }
 
 // CreateOrderFromCart processes checkout using Optimistic Locking and Unit of Work logic.
-func (s *OrderService) CreateOrderFromCart(ctx context.Context, userID uuid.UUID) (*domain.Order, error) {
+// couponDiscount is a pre-validated discount percent (e.g. 20 = 20% off). Pass 0 to skip.
+func (s *OrderService) CreateOrderFromCart(ctx context.Context, userID uuid.UUID, couponCode string, couponDiscount float64) (*domain.Order, error) {
 	cart, err := s.cartRepo.GetByUserID(ctx, userID)
 	if err != nil || cart == nil || len(cart.Items) == 0 {
 		return nil, domain.ErrEmptyCart
@@ -53,13 +54,12 @@ func (s *OrderService) CreateOrderFromCart(ctx context.Context, userID uuid.UUID
 		if s.inventoryRepo != nil {
 			inv, err := s.inventoryRepo.GetByProductID(ctx, item.ProductID)
 			if err != nil {
-				// If no inventory record exists yet, allow demo checkout or check stock
-				logger.Warn(ctx, "inventory record not found during checkout, skipping optimistic lock probe", "product_id", item.ProductID.String())
+				logger.Warn(ctx, "inventory record not found during checkout, skipping optimistic lock probe",
+					"product_id", item.ProductID.String())
 			} else {
 				if inv.AvailableQuantity() < item.Quantity {
 					return nil, fmt.Errorf("insufficient stock for product %s: %w", item.Name, domain.ErrInsufficientStock)
 				}
-				// Atomic Optimistic Lock Update
 				if err := s.inventoryRepo.ReserveStockWithOptimisticLock(ctx, item.ProductID, item.Quantity, inv.Version); err != nil {
 					return nil, fmt.Errorf("failed to reserve inventory for %s: %w", item.Name, err)
 				}
@@ -79,32 +79,47 @@ func (s *OrderService) CreateOrderFromCart(ctx context.Context, userID uuid.UUID
 		})
 	}
 
-	// 2. Build Order Entity
+	// 2. Apply coupon discount if provided
+	if couponDiscount > 0 && couponDiscount < 100 {
+		discount := totalAmount * (couponDiscount / 100.0)
+		totalAmount = totalAmount - discount
+		if totalAmount < 0 {
+			totalAmount = 0
+		}
+	}
+
+	// 3. Build Order Entity
 	order := &domain.Order{
 		ID:          orderID,
 		UserID:      userID,
 		TotalAmount: totalAmount,
 		Status:      domain.OrderStatusPending,
+		CouponCode:  couponCode,
 		Items:       orderItems,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
 
-	// 3. Persist Order in Database
+	// 4. Persist Order in Database
 	if err := s.orderRepo.Create(ctx, order); err != nil {
 		return nil, fmt.Errorf("failed to persist order: %w", err)
 	}
 
-	// 4. Clear Shopping Cart
+	// 5. Clear Shopping Cart
 	_ = s.cartRepo.Clear(ctx, userID)
 
-	// 5. Record Business Metrics
+	// 6. Record Business Metrics
 	metrics.OrdersCreated.Inc()
 	metrics.OrderTotalAmount.Observe(totalAmount)
 
-	logger.Info(ctx, "order created successfully", "order_id", orderID.String(), "user_id", userID.String(), "total", totalAmount)
+	logger.Info(ctx, "order created successfully",
+		"order_id", orderID.String(),
+		"user_id", userID.String(),
+		"total", totalAmount,
+		"coupon", couponCode,
+	)
 
-	// 6. Dispatch Async Post-Checkout Jobs (non-blocking)
+	// 7. Dispatch Async Post-Checkout Jobs (non-blocking)
 	if s.workerPool != nil {
 		s.workerPool.Dispatch(ctx, &worker.OrderCreatedJob{
 			OrderID:   orderID,
@@ -117,6 +132,50 @@ func (s *OrderService) CreateOrderFromCart(ctx context.Context, userID uuid.UUID
 			UserID:  userID,
 			Total:   totalAmount,
 		})
+	}
+
+	return order, nil
+}
+
+// CancelOrder cancels an order if it is still in a cancellable state.
+// Verifies ownership, guards against cancelling shipped/cancelled orders,
+// updates status, and asynchronously restores inventory.
+func (s *OrderService) CancelOrder(ctx context.Context, orderID, userID uuid.UUID) (*domain.Order, error) {
+	order, err := s.orderRepo.GetByID(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ownership check
+	if order.UserID != userID {
+		return nil, domain.ErrOrderNotOwned
+	}
+
+	// Only PENDING or PAID orders can be cancelled
+	if order.Status == domain.OrderStatusShipped || order.Status == domain.OrderStatusCancelled {
+		return nil, domain.ErrOrderCannotBeCancelled
+	}
+
+	if err := s.orderRepo.UpdateStatus(ctx, orderID, domain.OrderStatusCancelled); err != nil {
+		return nil, fmt.Errorf("failed to cancel order: %w", err)
+	}
+
+	order.Status = domain.OrderStatusCancelled
+	metrics.OrdersCancelled.Inc()
+
+	logger.Info(ctx, "order cancelled",
+		"order_id", orderID.String(),
+		"user_id", userID.String(),
+	)
+
+	// Dispatch inventory restore jobs for each item (async)
+	if s.workerPool != nil {
+		for _, item := range order.Items {
+			s.workerPool.Dispatch(ctx, &worker.InventoryRestoreJob{
+				ProductID: item.ProductID,
+				Quantity:  item.Quantity,
+			})
+		}
 	}
 
 	return order, nil

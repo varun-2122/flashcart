@@ -69,3 +69,16 @@ func (r *PostgresUserRepository) GetByEmail(ctx context.Context, email string) (
 	}
 	return u, nil
 }
+
+func (r *PostgresUserRepository) Update(ctx context.Context, u *domain.User) error {
+	query := `
+		UPDATE users
+		SET first_name = $1, last_name = $2, updated_at = $3
+		WHERE id = $4
+	`
+	_, err := r.db.Pool.Exec(ctx, query, u.FirstName, u.LastName, u.UpdatedAt, u.ID)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+	return nil
+}

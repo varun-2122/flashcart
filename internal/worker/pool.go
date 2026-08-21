@@ -7,9 +7,15 @@ import (
 	"fmt"
 	"runtime/debug"
 	"sync"
+	"time"
 
 	"github.com/varun-2122/flashcart/internal/logger"
 	"github.com/varun-2122/flashcart/internal/metrics"
+)
+
+const (
+	maxRetries    = 3
+	baseBackoffMs = 100
 )
 
 // Job is implemented by any value that can execute an async background task.
@@ -70,26 +76,66 @@ func (p *Pool) runWorker(ctx context.Context, id int) {
 	defer p.wg.Done()
 
 	for job := range p.jobs {
-		p.executeJob(ctx, id, job)
+		p.executeWithRetry(ctx, id, job)
 	}
 }
 
-// executeJob runs a single job with panic recovery so one bad job cannot crash a worker.
-func (p *Pool) executeJob(ctx context.Context, workerID int, job Job) {
+// executeWithRetry runs a job up to maxRetries times with exponential backoff.
+// On all retries exhausted, the job is sent to the dead-letter log (DLQ).
+func (p *Pool) executeWithRetry(ctx context.Context, workerID int, job Job) {
+	var lastErr any
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		success := p.executeJob(ctx, workerID, job, attempt)
+		if success {
+			metrics.WorkerJobsProcessed.WithLabelValues(job.Name()).Inc()
+			return
+		}
+
+		// Exponential backoff before next retry (skip on last attempt)
+		if attempt < maxRetries {
+			backoff := time.Duration(baseBackoffMs*(1<<(attempt-1))) * time.Millisecond
+			logger.Warn(ctx, "job failed, retrying",
+				"worker_id", workerID,
+				"job", job.Name(),
+				"attempt", attempt,
+				"next_retry_in", backoff.String(),
+			)
+			time.Sleep(backoff)
+		}
+		lastErr = fmt.Sprintf("attempt %d failed", attempt)
+	}
+
+	// All retries exhausted → Dead Letter Queue (DLQ) log
+	metrics.WorkerJobsFailed.WithLabelValues(job.Name()).Inc()
+	logger.Error(ctx, "job sent to DLQ after all retries exhausted",
+		"worker_id", workerID,
+		"job", job.Name(),
+		"attempts", maxRetries,
+		"last_error", fmt.Sprintf("%v", lastErr),
+		"dlq", true,
+	)
+}
+
+// executeJob runs a single job with panic recovery.
+// Returns true on success, false if a panic occurred.
+func (p *Pool) executeJob(ctx context.Context, workerID int, job Job, attempt int) (success bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			stack := string(debug.Stack())
 			logger.Error(ctx, "panic recovered in worker goroutine",
 				"worker_id", workerID,
 				"job", job.Name(),
+				"attempt", attempt,
 				"error", fmt.Sprintf("%v", r),
 				"stack", stack,
 			)
+			success = false
 		}
 	}()
 
-	logger.Info(ctx, "worker executing job", "worker_id", workerID, "job", job.Name())
+	logger.Info(ctx, "worker executing job", "worker_id", workerID, "job", job.Name(), "attempt", attempt)
 	job.Execute(ctx)
-	metrics.WorkerJobsProcessed.WithLabelValues(job.Name()).Inc()
 	logger.Info(ctx, "worker completed job", "worker_id", workerID, "job", job.Name())
+	return true
 }

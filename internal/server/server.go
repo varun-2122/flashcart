@@ -17,17 +17,20 @@ import (
 	"github.com/varun-2122/flashcart/internal/cache"
 	"github.com/varun-2122/flashcart/internal/cart"
 	"github.com/varun-2122/flashcart/internal/config"
+	"github.com/varun-2122/flashcart/internal/coupon"
 	"github.com/varun-2122/flashcart/internal/database"
 	"github.com/varun-2122/flashcart/internal/domain"
 	"github.com/varun-2122/flashcart/internal/inventory"
 	"github.com/varun-2122/flashcart/internal/logger"
 	"github.com/varun-2122/flashcart/internal/middleware"
 	"github.com/varun-2122/flashcart/internal/order"
+	"github.com/varun-2122/flashcart/internal/payment"
 	"github.com/varun-2122/flashcart/internal/product"
 	"github.com/varun-2122/flashcart/internal/review"
 	"github.com/varun-2122/flashcart/internal/tracing"
 	"github.com/varun-2122/flashcart/internal/user"
 	"github.com/varun-2122/flashcart/internal/worker"
+	redisc "github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -41,7 +44,7 @@ type Server struct {
 	tracer     *trace.TracerProvider
 }
 
-// NewServer builds and configures HTTP server instance with Phase 3 domain routes.
+// NewServer builds and configures HTTP server instance with all Phase 4 domain routes.
 func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisClient) *Server {
 	mux := http.NewServeMux()
 
@@ -51,17 +54,17 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 	mux.HandleFunc("GET /livez", healthHandler.Livez)
 	mux.HandleFunc("GET /readyz", healthHandler.Readyz)
 
-	// Serve static frontend files from 'web' directory
+	// 2. Serve static frontend files from 'web' directory
 	fs := http.FileServer(http.Dir("web"))
 	mux.Handle("/", fs)
 
-	// 2. Prometheus Metrics Scrape Endpoint
+	// 3. Prometheus Metrics Scrape Endpoint
 	mux.Handle("GET /metrics", promhttp.Handler())
 
-	// 3. Initialize Worker Pool (5 workers, 100-job buffer)
+	// 4. Initialize Worker Pool (5 workers, 100-job buffer)
 	pool := worker.NewPool(5, 100)
 
-	// 4. Initialize OpenTelemetry Tracing
+	// 5. Initialize OpenTelemetry Tracing
 	var tracerProvider *trace.TracerProvider
 	if tp, err := tracing.InitTracer(context.Background(), "flashcart-api", "localhost:4317"); err == nil {
 		tracerProvider = tp
@@ -69,7 +72,7 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 		logger.Warn(context.Background(), "failed to initialize opentelemetry tracing", "error", err.Error())
 	}
 
-	// 5. Initialize Repositories and Services if database available
+	// 6. Initialize Repositories and Services if database available
 	if db != nil && db.Pool != nil {
 		// Run DB migrations automatically
 		_ = db.RunMigrations(context.Background())
@@ -77,41 +80,66 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 		// Auto-seed database if empty
 		seedDatabase(context.Background(), db)
 
-		// Setup Repositories
-		userRepo := user.NewPostgresUserRepository(db)
-		pgProdRepo := product.NewPostgresProductRepository(db)
-		prodRepo := product.NewCachedProductRepository(pgProdRepo, redis)
-		invRepo := inventory.NewPostgresInventoryRepository(db)
-		cartRepo := cart.NewRedisCartRepository(redis)
-		orderRepo := order.NewPostgresOrderRepository(db)
-		reviewRepo := review.NewPostgresReviewRepository(db)
+		// ── Repositories ──────────────────────────────────────────────────────
+		userRepo    := user.NewPostgresUserRepository(db)
+		pgProdRepo  := product.NewPostgresProductRepository(db)
+		prodRepo    := product.NewCachedProductRepository(pgProdRepo, redis)
+		invRepo     := inventory.NewPostgresInventoryRepository(db)
+		cartRepo    := cart.NewRedisCartRepository(redis)
+		orderRepo   := order.NewPostgresOrderRepository(db)
+		reviewRepo  := review.NewPostgresReviewRepository(db)
+		payRepo     := payment.NewPostgresPaymentRepository(db)
+		couponRepo  := coupon.NewPostgresCouponRepository(db)
 
-		// Setup Security
-		jwtManager := auth.NewJWTManager("", cfg.App.RequestTimeout*100)
-		authService := auth.NewAuthService(userRepo, jwtManager, cfg.App.GoogleClientID)
-		authHandler := auth.NewAuthHandler(authService)
-
+		// ── Security ──────────────────────────────────────────────────────────
+		jwtManager     := auth.NewJWTManager("", cfg.App.RequestTimeout*100)
+		authService    := auth.NewAuthService(userRepo, jwtManager, cfg.App.GoogleClientID)
+		authHandler    := auth.NewAuthHandler(authService)
 		authMiddleware := auth.AuthMiddleware(jwtManager)
 
-		// Setup Domain Services & Handlers
-		productService := product.NewProductService(prodRepo, invRepo)
-		productHandler := product.NewProductHandler(productService)
+		// ── Domain Services & Handlers ────────────────────────────────────────
+		productService  := product.NewProductService(prodRepo, invRepo)
+		productHandler  := product.NewProductHandler(productService)
 
-		cartService := cart.NewCartService(cartRepo, prodRepo)
-		cartHandler := cart.NewCartHandler(cartService)
+		cartService  := cart.NewCartService(cartRepo, prodRepo)
+		cartHandler  := cart.NewCartHandler(cartService)
 
-		orderService := order.NewOrderService(orderRepo, cartRepo, invRepo, prodRepo, pool)
-		orderHandler := order.NewOrderHandler(orderService)
+		orderService  := order.NewOrderService(orderRepo, cartRepo, invRepo, prodRepo, pool)
+		orderHandler  := order.NewOrderHandler(orderService)
 
-		reviewService := review.NewReviewService(reviewRepo)
-		reviewHandler := review.NewReviewHandler(reviewService)
+		reviewService  := review.NewReviewService(reviewRepo)
+		reviewHandler  := review.NewReviewHandler(reviewService)
 
-		// Auth Routes
-		mux.HandleFunc("POST /api/v1/auth/register", authHandler.Register)
-		mux.HandleFunc("POST /api/v1/auth/login", authHandler.Login)
+		paymentService  := payment.NewPaymentService(payRepo)
+		paymentHandler  := payment.NewPaymentHandler(paymentService)
+
+		couponService  := coupon.NewCouponService(couponRepo)
+		couponHandler  := coupon.NewCouponHandler(couponService)
+
+		userService  := user.NewUserService(userRepo)
+		userHandler  := user.NewUserHandler(userService)
+
+		// ── Rate limiter (Redis sliding window) ──────────────────────────────
+		// Extracts the underlying *redis.Client from our wrapper (nil-safe).
+		var rawRedis *redisc.Client
+		if redis != nil {
+			rawRedis = redis.Client
+		}
+
+		// ── Auth Routes ───────────────────────────────────────────────────────
+		mux.Handle("POST /api/v1/auth/register",
+			middleware.RateLimit(rawRedis, 10, 60*time.Second, "auth_register")(http.HandlerFunc(authHandler.Register)))
+		mux.Handle("POST /api/v1/auth/login",
+			middleware.RateLimit(rawRedis, 10, 60*time.Second, "auth_login")(http.HandlerFunc(authHandler.Login)))
 		mux.HandleFunc("POST /api/v1/auth/google", authHandler.GoogleLogin)
 
-		// Product Routes
+		// ── User Profile Routes ───────────────────────────────────────────────
+		mux.Handle("GET /api/v1/users/me",
+			authMiddleware(http.HandlerFunc(userHandler.GetMe)))
+		mux.Handle("PATCH /api/v1/users/me",
+			authMiddleware(http.HandlerFunc(userHandler.UpdateMe)))
+
+		// ── Product Routes ────────────────────────────────────────────────────
 		mux.HandleFunc("GET /api/v1/products", productHandler.ListProducts)
 		mux.HandleFunc("GET /api/v1/products/{id}", productHandler.GetProduct)
 		mux.Handle("POST /api/v1/products", middleware.Chain(
@@ -119,23 +147,44 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 			authMiddleware,
 			auth.RequireRole(domain.RoleAdmin),
 		))
-		
-		// Review Routes
+
+		// ── Review Routes ─────────────────────────────────────────────────────
 		mux.HandleFunc("GET /api/v1/products/{id}/reviews", reviewHandler.GetReviews)
-		mux.Handle("POST /api/v1/products/{id}/reviews", authMiddleware(http.HandlerFunc(reviewHandler.CreateReview)))
+		mux.Handle("POST /api/v1/products/{id}/reviews",
+			authMiddleware(http.HandlerFunc(reviewHandler.CreateReview)))
 
-		// Cart Routes (Authenticated)
-		mux.Handle("GET /api/v1/cart", authMiddleware(http.HandlerFunc(cartHandler.GetCart)))
-		mux.Handle("POST /api/v1/cart/items", authMiddleware(http.HandlerFunc(cartHandler.AddItem)))
-		mux.Handle("DELETE /api/v1/cart/items/{product_id}", authMiddleware(http.HandlerFunc(cartHandler.RemoveItem)))
+		// ── Cart Routes (Authenticated) ───────────────────────────────────────
+		mux.Handle("GET /api/v1/cart",
+			authMiddleware(http.HandlerFunc(cartHandler.GetCart)))
+		mux.Handle("POST /api/v1/cart/items",
+			authMiddleware(http.HandlerFunc(cartHandler.AddItem)))
+		mux.Handle("DELETE /api/v1/cart/items/{product_id}",
+			authMiddleware(http.HandlerFunc(cartHandler.RemoveItem)))
 
-		// Order Routes (Authenticated)
-		mux.Handle("POST /api/v1/orders", authMiddleware(http.HandlerFunc(orderHandler.CreateOrder)))
-		mux.Handle("GET /api/v1/orders", authMiddleware(http.HandlerFunc(orderHandler.ListUserOrders)))
-		mux.Handle("GET /api/v1/orders/{id}", authMiddleware(http.HandlerFunc(orderHandler.GetOrder)))
+		// ── Order Routes (Authenticated) ──────────────────────────────────────
+		mux.Handle("POST /api/v1/orders",
+			authMiddleware(http.HandlerFunc(orderHandler.CreateOrder)))
+		mux.Handle("GET /api/v1/orders",
+			authMiddleware(http.HandlerFunc(orderHandler.ListUserOrders)))
+		mux.Handle("GET /api/v1/orders/{id}",
+			authMiddleware(http.HandlerFunc(orderHandler.GetOrder)))
+		mux.Handle("POST /api/v1/orders/{id}/cancel",
+			authMiddleware(http.HandlerFunc(orderHandler.CancelOrder)))
+
+		// ── Payment Routes (Authenticated) ────────────────────────────────────
+		mux.Handle("POST /api/v1/payments",
+			authMiddleware(http.HandlerFunc(paymentHandler.InitiatePayment)))
+		mux.Handle("GET /api/v1/payments/{id}",
+			authMiddleware(http.HandlerFunc(paymentHandler.GetPayment)))
+		mux.Handle("GET /api/v1/orders/{id}/payment",
+			authMiddleware(http.HandlerFunc(paymentHandler.GetOrderPayment)))
+
+		// ── Coupon Routes (Authenticated) ─────────────────────────────────────
+		mux.Handle("POST /api/v1/coupons/validate",
+			authMiddleware(http.HandlerFunc(couponHandler.ValidateCoupon)))
 	}
 
-	// Global Production Middleware Chain (Tracing + Metrics added for Phase 4)
+	// Global Production Middleware Chain
 	handler := middleware.Chain(
 		mux,
 		middleware.RequestID,
@@ -225,6 +274,8 @@ func (s *Server) Start(ctx context.Context) error {
 	return nil
 }
 
+// seedDatabase inserts seed products and inventory if the DB is empty.
+// BUG FIX: Uses correct column names (quantity, reserved_quantity) matching the migration.
 func seedDatabase(ctx context.Context, db *database.PostgresDB) {
 	var count int
 	err := db.Pool.QueryRow(ctx, "SELECT count(*) FROM products").Scan(&count)
@@ -288,9 +339,9 @@ func seedDatabase(ctx context.Context, db *database.PostgresDB) {
 		`, p.ID, p.SKU, p.Name, p.Description, p.Price, p.Brand, p.IsActive, p.CreatedAt, p.UpdatedAt)
 
 		if err == nil {
-			// Insert initial inventory of 100 units
+			// BUG FIX: column names are 'quantity' and 'reserved_quantity' (not available_stock/reserved_stock)
 			_, _ = db.Pool.Exec(ctx, `
-				INSERT INTO inventory (product_id, available_stock, reserved_stock, version, updated_at)
+				INSERT INTO inventory (product_id, quantity, reserved_quantity, version, updated_at)
 				VALUES ($1, 100, 0, 1, $2)
 			`, p.ID, time.Now())
 		}

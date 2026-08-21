@@ -58,3 +58,40 @@ func (j *InvoiceJob) Execute(ctx context.Context) {
 		"destination", "s3://flashcart-invoices/"+j.OrderID.String()+".pdf",
 	)
 }
+
+// PaymentProcessedJob records a payment confirmation event for analytics / audit.
+type PaymentProcessedJob struct {
+	PaymentID uuid.UUID
+	OrderID   uuid.UUID
+	UserID    uuid.UUID
+	Amount    float64
+	Status    string
+}
+
+func (j *PaymentProcessedJob) Name() string { return "payment_processed" }
+
+func (j *PaymentProcessedJob) Execute(ctx context.Context) {
+	logger.Info(ctx, "payment event recorded",
+		"payment_id", j.PaymentID.String(),
+		"order_id", j.OrderID.String(),
+		"amount", j.Amount,
+		"status", j.Status,
+	)
+}
+
+// InventoryRestoreJob releases reserved stock when an order is cancelled.
+// In production this would call the inventory repository directly.
+type InventoryRestoreJob struct {
+	ProductID uuid.UUID
+	Quantity  int
+}
+
+func (j *InventoryRestoreJob) Name() string { return "inventory_restore" }
+
+func (j *InventoryRestoreJob) Execute(ctx context.Context) {
+	// Simulate restoring inventory (real impl: call inventoryRepo.ReleaseStock)
+	logger.Info(ctx, "inventory restore triggered",
+		"product_id", j.ProductID.String(),
+		"quantity", j.Quantity,
+	)
+}

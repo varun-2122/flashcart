@@ -1,2 +1,2 @@
-// Package payment handles payment gateways (mock gateway, Stripe, Razorpay integration).
+// Package payment provides the payment domain — repository, service, and HTTP handler.
 package payment

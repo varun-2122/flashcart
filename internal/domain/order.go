@@ -18,8 +18,10 @@ const (
 )
 
 var (
-	ErrOrderNotFound = errors.New("order not found")
-	ErrEmptyCart     = errors.New("cannot create order from empty cart")
+	ErrOrderNotFound          = errors.New("order not found")
+	ErrEmptyCart              = errors.New("cannot create order from empty cart")
+	ErrOrderCannotBeCancelled = errors.New("order cannot be cancelled in its current state")
+	ErrOrderNotOwned          = errors.New("order does not belong to this user")
 )
 
 // OrderItem represents a line item in an order.
@@ -38,6 +40,7 @@ type Order struct {
 	UserID      uuid.UUID   `json:"user_id"`
 	TotalAmount float64     `json:"total_amount"`
 	Status      OrderStatus `json:"status"`
+	CouponCode  string      `json:"coupon_code,omitempty"`
 	Items       []OrderItem `json:"items,omitempty"`
 	CreatedAt   time.Time   `json:"created_at"`
 	UpdatedAt   time.Time   `json:"updated_at"`
