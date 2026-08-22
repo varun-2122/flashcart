@@ -3,38 +3,32 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Sign In - FlashCart</title>
+    <title>Sign In — FlashCart</title>
+    <meta name="description" content="Sign in to FlashCart to access your orders, cart, and profile."/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap');
-    </style>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
-                    "colors": {
+                    colors: {
                         "surface": "var(--color-surface)",
                         "primary": "var(--color-primary)",
                         "on-surface": "var(--color-on-surface)",
                         "background": "var(--color-background)",
                         "surface-container": "var(--color-surface-container)",
                         "on-surface-variant": "var(--color-on-surface-variant)",
+                        "outline": "var(--color-outline)",
                     },
-                    "fontFamily": {
-                        "data-mono-lg": ["Geist Mono"],
-                        "data-mono-md": ["Geist Mono"],
-                        "label-caps": ["Geist Mono"],
-                        "body-md": ["Geist"],
-                        "display-lg": ["Geist"]
-                    }
+                    fontFamily: { "mono": ["Geist Mono", "monospace"], "sans": ["Geist", "sans-serif"] }
                 }
             }
         }
     </script>
-    <style type="text/tailwindcss">
+    <style>
         :root {
             --color-background: #ffffff;
             --color-surface: #f8fafc;
@@ -42,90 +36,283 @@
             --color-on-surface: #0f172a;
             --color-on-surface-variant: #64748b;
             --color-primary: #2F6FFF;
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(0, 0, 0, 0.1);
+            --color-outline: #cbd5e1;
         }
         .dark {
-            --color-background: #111415;
-            --color-surface: #111415;
-            --color-surface-container: #1e2021;
-            --color-on-surface: #e2e2e4;
-            --color-on-surface-variant: #c3c6d8;
-            --color-primary: #b4c5ff;
-            --glass-bg: rgba(30, 32, 33, 0.8);
-            --glass-border: rgba(255, 255, 255, 0.05);
+            --color-background: #080A0C;
+            --color-surface: #0D0F12;
+            --color-surface-container: #13161A;
+            --color-on-surface: #E8EAED;
+            --color-on-surface-variant: #9AA0B4;
+            --color-primary: #4D8EFF;
+            --color-outline: #2A2D35;
         }
-        @layer utilities {
-            .glass-panel {
-                background: var(--glass-bg);
-                backdrop-filter: blur(20px);
-                border: 1px solid var(--glass-border);
-            }
-            .volt-gradient {
-                background: linear-gradient(90deg, #2F6FFF 0%, #A63CFF 100%);
-            }
-            .input-minimal {
-                @apply bg-transparent border-0 border-b border-outline/30 text-on-surface font-body-md focus:ring-0 focus:border-primary px-0 py-2 transition-colors outline-none;
-            }
+        * { font-family: 'Geist', sans-serif; }
+        .font-mono { font-family: 'Geist Mono', monospace !important; }
+        body { background: var(--color-background); }
+        /* Animated background grid */
+        .auth-bg {
+            position: fixed; inset: 0; z-index: 0;
+            background-image:
+                linear-gradient(rgba(77,142,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(77,142,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
         }
+        .auth-glow { position: fixed; inset: 0; z-index: 0;
+            background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(77,142,255,0.12) 0%, transparent 70%); }
+        /* Glassmorphism card */
+        .auth-card {
+            background: rgba(13,15,18,0.8);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 0 60px rgba(77,142,255,0.08), 0 40px 80px rgba(0,0,0,0.4);
+        }
+        .light .auth-card { background: rgba(248,250,252,0.9); border-color: rgba(0,0,0,0.08); box-shadow: 0 40px 80px rgba(0,0,0,0.1); }
+        .gradient-text { background: linear-gradient(135deg, #4D8EFF 0%, #C260FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .ignition-bar { background: linear-gradient(90deg, #4D8EFF, #C260FF); }
+        /* Tab underline */
+        .tab-active { color: var(--color-primary); border-bottom: 2px solid var(--color-primary); }
+        .tab-inactive { color: var(--color-on-surface-variant); border-bottom: 2px solid transparent; }
+        /* Input style */
+        .fc-input {
+            width: 100%;
+            background: var(--color-surface-container);
+            border: 1px solid var(--color-outline);
+            border-radius: 8px;
+            padding: 11px 14px;
+            font-size: 14px;
+            color: var(--color-on-surface);
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .fc-input:focus { border-color: #4D8EFF; box-shadow: 0 0 0 3px rgba(77,142,255,0.15); }
+        .fc-input::placeholder { color: var(--color-on-surface-variant); }
+        .fc-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #4D8EFF, #7B5CFF);
+            color: #fff;
+            font-family: 'Geist Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 13px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.15s ease, transform 0.1s ease;
+        }
+        .fc-btn:hover { opacity: 0.9; }
+        .fc-btn:active { transform: scale(0.99); }
+        .fc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* Divider */
+        .divider { display: flex; align-items: center; gap: 12px; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--color-outline); }
+        /* Google button override */
+        #g_id_onload, .g_id_signin { display: flex; justify-content: center; }
     </style>
 </head>
-<body class="bg-background text-on-surface min-h-screen flex flex-col antialiased">
-    <main class="flex-grow flex items-center justify-center p-4 relative z-10">
-        <div class="absolute top-4 right-4 flex items-center gap-4">
-            <button id="themeToggle" onclick="toggleTheme()" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded">
-                <span class="material-symbols-outlined" id="themeIcon">light_mode</span>
-            </button>
-            <button onclick="window.location.href='/index.html'" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded flex items-center gap-2">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-        </div>
-        <div class="glass-panel w-full max-w-md rounded-xl p-10 relative z-10 overflow-hidden group">
-            <div class="absolute top-0 left-0 w-full h-[2px] volt-gradient opacity-80"></div>
-            <div class="mb-10 text-center">
-                <h1 class="font-display-lg text-4xl tracking-tighter text-primary mb-2">FLASHCART</h1>
-                <p class="font-label-caps text-xs text-on-surface-variant uppercase">Secure Authentication</p>
-            </div>
-            
-            <div class="flex justify-center mb-6">
-                <!-- Replace 'YOUR_GOOGLE_CLIENT_ID' with the actual client ID -->
-                <div id="g_id_onload"
-                     data-client_id="213138544307-3bgss7ang1deccl0efqn5dd1k1id03s1.apps.googleusercontent.com"
-                     data-context="signin"
-                     data-ux_mode="popup"
-                     data-callback="handleGoogleLogin"
-                     data-auto_prompt="false">
-                </div>
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-shape="rectangular"
-                     data-theme="outline"
-                     data-text="signin_with"
-                     data-size="large"
-                     data-logo_alignment="left">
-                </div>
-            </div>
+<body class="min-h-screen flex items-center justify-center antialiased relative" style="background:var(--color-background); color:var(--color-on-surface)">
+    <!-- Backgrounds -->
+    <div class="auth-bg"></div>
+    <div class="auth-glow"></div>
 
-            <div class="flex items-center gap-4 mb-6">
-                <div class="h-px bg-outline/30 flex-1"></div>
-                <span class="text-xs text-on-surface-variant uppercase font-label-caps">OR EMAIL</span>
-                <div class="h-px bg-outline/30 flex-1"></div>
-            </div>
+    <!-- Back + Theme -->
+    <div class="fixed top-4 left-4 right-4 flex items-center justify-between z-50">
+        <a href="/index.html" class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-sm font-mono">
+            <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+            Back to store
+        </a>
+        <button onclick="toggleTheme()" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+            <span class="material-symbols-outlined" id="themeIcon" style="font-size:20px">light_mode</span>
+        </button>
+    </div>
 
-            <form class="flex flex-col gap-6" id="signinForm" onsubmit="handleLogin(event)">
-                <div class="relative group/input">
-                    <input class="input-minimal w-full" id="email" placeholder="Email Address" required="" type="email"/>
-                </div>
-                <div class="relative group/input">
-                    <input class="input-minimal w-full" id="password" placeholder="Password" required="" type="password"/>
-                </div>
-                <button class="w-full volt-gradient text-background font-data-mono-md py-3 rounded mt-4 hover:opacity-90 transition-opacity" type="submit">
-                    Authenticate
-                </button>
-                <div id="authError" class="text-red-400 text-sm mt-2 hidden text-center"></div>
-            </form>
+    <!-- Card -->
+    <div class="auth-card w-full max-w-md rounded-2xl p-8 relative z-10 mx-4">
+        <!-- Top bar -->
+        <div class="absolute top-0 left-0 w-full h-[2px] ignition-bar rounded-t-2xl"></div>
+
+        <!-- Brand -->
+        <div class="text-center mb-8">
+            <a href="/index.html" class="font-mono text-2xl font-black gradient-text tracking-tight">FLASHCART</a>
+            <p class="text-on-surface-variant text-xs font-mono uppercase tracking-widest mt-2">Secure Authentication</p>
         </div>
-    </main>
-    <script src="/js/app.js?v=2"></script>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-outline mb-7">
+            <button id="tabLogin" onclick="switchTab('login')" class="flex-1 pb-3 text-sm font-semibold transition-all tab-active font-mono uppercase tracking-wider">Sign In</button>
+            <button id="tabRegister" onclick="switchTab('register')" class="flex-1 pb-3 text-sm font-semibold transition-all tab-inactive font-mono uppercase tracking-wider">Register</button>
+        </div>
+
+        <!-- Google Login -->
+        <div class="mb-5 flex justify-center">
+            <div id="g_id_onload"
+                 data-client_id="213138544307-3bgss7ang1deccl0efqn5dd1k1id03s1.apps.googleusercontent.com"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleGoogleLogin"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="320">
+            </div>
+        </div>
+
+        <div class="divider mb-5">
+            <span class="text-on-surface-variant text-xs font-mono uppercase tracking-widest">or continue with email</span>
+        </div>
+
+        <!-- Error -->
+        <div id="authError" class="hidden mb-4 flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            <span class="material-symbols-outlined" style="font-size:16px">error</span>
+            <span id="authErrorText"></span>
+        </div>
+
+        <!-- ── Login Form ── -->
+        <form id="loginForm" onsubmit="handleLogin(event)" class="flex flex-col gap-4">
+            <div>
+                <label class="block text-xs font-mono text-on-surface-variant uppercase tracking-wider mb-1.5">Email Address</label>
+                <input id="email" type="email" required placeholder="you@example.com" class="fc-input"/>
+            </div>
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-xs font-mono text-on-surface-variant uppercase tracking-wider">Password</label>
+                    <a href="#" class="text-xs text-primary hover:underline">Forgot password?</a>
+                </div>
+                <input id="password" type="password" required placeholder="••••••••" class="fc-input"/>
+            </div>
+            <button type="submit" id="loginBtn" class="fc-btn mt-2">Sign In</button>
+        </form>
+
+        <!-- ── Register Form ── -->
+        <form id="registerForm" onsubmit="handleRegister(event)" class="flex-col gap-4 hidden">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-mono text-on-surface-variant uppercase tracking-wider mb-1.5">First Name</label>
+                    <input id="first_name" type="text" required placeholder="Varun" class="fc-input"/>
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-on-surface-variant uppercase tracking-wider mb-1.5">Last Name</label>
+                    <input id="last_name" type="text" placeholder="Dixit" class="fc-input"/>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-mono text-on-surface-variant uppercase tracking-wider mb-1.5">Email Address</label>
+                <input id="reg_email" type="email" required placeholder="you@example.com" class="fc-input"/>
+            </div>
+            <div>
+                <label class="block text-xs font-mono text-on-surface-variant uppercase tracking-wider mb-1.5">Password</label>
+                <input id="reg_password" type="password" required placeholder="Min. 8 characters" class="fc-input"/>
+            </div>
+            <button type="submit" id="registerBtn" class="fc-btn mt-2">Create Account</button>
+        </form>
+
+        <!-- Footer -->
+        <p class="text-center text-xs text-on-surface-variant mt-6">
+            By continuing, you agree to FlashCart's
+            <a href="#" class="text-primary hover:underline">Terms</a> &
+            <a href="#" class="text-primary hover:underline">Privacy Policy</a>.
+        </p>
+    </div>
+
+    <script src="/js/app.js?v=3"></script>
+    <script>
+        function switchTab(tab) {
+            const loginForm    = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabLogin     = document.getElementById('tabLogin');
+            const tabRegister  = document.getElementById('tabRegister');
+            const errDiv       = document.getElementById('authError');
+            errDiv.classList.add('hidden');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                loginForm.classList.add('flex');
+                registerForm.classList.remove('flex');
+                registerForm.classList.add('hidden');
+                tabLogin.classList.add('tab-active');    tabLogin.classList.remove('tab-inactive');
+                tabRegister.classList.add('tab-inactive'); tabRegister.classList.remove('tab-active');
+            } else {
+                loginForm.classList.add('hidden');
+                loginForm.classList.remove('flex');
+                registerForm.classList.remove('hidden');
+                registerForm.classList.add('flex');
+                tabRegister.classList.add('tab-active');  tabRegister.classList.remove('tab-inactive');
+                tabLogin.classList.add('tab-inactive');   tabLogin.classList.remove('tab-active');
+            }
+        }
+
+        // Override handleLogin/handleRegister to use the correct field IDs
+        async function handleLogin(event) {
+            event.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true; btn.textContent = 'Signing in...';
+            const errDiv = document.getElementById('authError');
+            const errText = document.getElementById('authErrorText');
+            errDiv.classList.add('hidden');
+
+            try {
+                const res  = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: document.getElementById('email').value.trim(), password: document.getElementById('password').value }),
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json?.error?.message || json?.error || 'Login failed');
+                const token = (json.data || json)?.access_token;
+                if (!token) throw new Error('No token received');
+                setToken(token);
+                await syncLocalCartToServer();
+                window.location.href = '/index.html';
+            } catch (err) {
+                errText.textContent = err.message;
+                errDiv.classList.remove('hidden');
+                btn.disabled = false; btn.textContent = 'Sign In';
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            const btn = document.getElementById('registerBtn');
+            btn.disabled = true; btn.textContent = 'Creating account...';
+            const errDiv = document.getElementById('authError');
+            const errText = document.getElementById('authErrorText');
+            errDiv.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('reg_email').value.trim(),
+                        password: document.getElementById('reg_password').value,
+                        first_name: document.getElementById('first_name').value.trim(),
+                        last_name: document.getElementById('last_name').value.trim(),
+                    }),
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json?.error?.message || json?.error || 'Registration failed');
+                const token = (json.data || json)?.access_token;
+                if (!token) throw new Error('No token received');
+                setToken(token);
+                await syncLocalCartToServer();
+                window.location.href = '/index.html';
+            } catch (err) {
+                errText.textContent = err.message;
+                errDiv.classList.remove('hidden');
+                btn.disabled = false; btn.textContent = 'Create Account';
+            }
+        }
+
+        // If already logged in, redirect to home
+        if (getToken()) window.location.href = '/index.html';
+    </script>
 </body>
 </html>

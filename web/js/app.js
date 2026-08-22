@@ -222,31 +222,44 @@ function showToast(message, type = 'info') {
     if (!container) {
         container = document.createElement('div');
         container.id = 'toastContainer';
-        container.className = 'fixed bottom-6 right-6 flex flex-col gap-2 z-[100]';
+        container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
         document.body.appendChild(container);
     }
 
-    const colorMap = {
-        success: 'bg-green-600',
-        error:   'bg-red-600',
-        info:    'bg-primary',
+    const bgMap = {
+        success: '#16a34a',
+        error:   '#dc2626',
+        info:    '#4D8EFF',
     };
 
     const toast = document.createElement('div');
-    toast.className = `${colorMap[type] || 'bg-primary'} text-white text-sm font-label-caps px-sm py-xs rounded shadow-lg transition-all duration-300 opacity-0 translate-y-2`;
+    toast.style.cssText = `
+        background: ${bgMap[type] || '#4D8EFF'};
+        color: #fff;
+        font-family: 'Geist Mono', monospace;
+        font-size: 13px;
+        padding: 12px 18px;
+        border-radius: 8px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        max-width: 320px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+    `;
     toast.textContent = message;
     container.appendChild(toast);
 
-    // Animate in
     requestAnimationFrame(() => {
-        toast.classList.remove('opacity-0', 'translate-y-2');
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
     });
 
-    // Auto-remove after 3s
     setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, 3500);
 }
 
 // ── Cart Page ─────────────────────────────────────
@@ -590,13 +603,21 @@ async function submitReview(event) {
 
 // ── Initialisation ────────────────────────────────
 
-// Restore theme
-const savedTheme = localStorage.getItem('fc_theme');
-if (savedTheme === 'light') {
-    document.documentElement.classList.remove('dark');
-    const ti = document.getElementById('themeIcon');
-    if (ti) ti.textContent = 'dark_mode';
-}
+// Restore theme on every page
+(function initTheme() {
+    const saved = localStorage.getItem('fc_theme');
+    const html  = document.documentElement;
+    if (saved === 'light') {
+        html.classList.remove('dark');
+    } else {
+        html.classList.add('dark');
+    }
+    // Sync icon after DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        const ti = document.getElementById('themeIcon');
+        if (ti) ti.textContent = html.classList.contains('dark') ? 'light_mode' : 'dark_mode';
+    });
+})();
 
 checkSession();
 updateCartBadge();
@@ -607,5 +628,7 @@ if (path === '/' || path === '/index.html' || path.endsWith('/')) {
 } else if (path.includes('product.html')) {
     loadProductPage();
 } else if (path.includes('cart.html')) {
-    loadCart();
+    // cart.html handles its own loadCart() via DOMContentLoaded
+} else if (path.includes('profile.html')) {
+    // profile.html handles its own init
 }

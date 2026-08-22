@@ -3,16 +3,17 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>FlashCart</title>
+    <title>FlashCart — Precision Gear. Zero Hesitation.</title>
+    <meta name="description" content="FlashCart — Elite tactical equipment. Limited stock, absolute performance."/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
-                    "colors": {
+                    colors: {
                         "surface": "var(--color-surface)",
                         "on-primary": "var(--color-on-primary)",
                         "outline": "var(--color-outline)",
@@ -25,32 +26,9 @@
                         "on-surface-variant": "var(--color-on-surface-variant)",
                         "surface-container-lowest": "var(--color-surface-container-lowest)"
                     },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.25rem",
-                        "xl": "0.25rem",
-                        "full": "0.25rem"
-                    },
-                    "spacing": {
-                        "margin-mobile": "16px",
-                        "xs": "8px",
-                        "lg": "40px",
-                        "gutter": "20px",
-                        "sm": "16px",
-                        "md": "24px",
-                        "margin-desktop": "48px",
-                        "base": "4px",
-                        "xl": "64px"
-                    },
-                    "fontFamily": {
-                        "data-mono-lg": ["Geist Mono", "monospace"],
-                        "data-mono-md": ["Geist Mono", "monospace"],
-                        "label-caps": ["Geist Mono", "monospace"],
-                        "body-lg": ["Geist", "sans-serif"],
-                        "display-lg": ["Geist", "sans-serif"],
-                        "body-md": ["Geist", "sans-serif"],
-                        "headline-md": ["Geist", "sans-serif"],
-                        "headline-sm": ["Geist", "sans-serif"]
+                    fontFamily: {
+                        "mono": ["Geist Mono", "monospace"],
+                        "sans": ["Geist", "sans-serif"],
                     }
                 }
             }
@@ -69,141 +47,421 @@
             --color-secondary: #A63CFF;
             --color-outline: #cbd5e1;
             --color-outline-variant: #94a3b8;
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(0, 0, 0, 0.1);
         }
         .dark {
-            --color-background: #0A0A0A;
-            --color-surface: #0A0A0A;
-            --color-surface-container: #17171B;
-            --color-surface-container-lowest: #0c0e10;
-            --color-on-surface: #e2e2e4;
-            --color-on-surface-variant: #c3c6d8;
-            --color-primary: #2F6FFF;
-            --color-on-primary: #0A0A0A;
-            --color-secondary: #A63CFF;
-            --color-outline: #8d90a1;
-            --color-outline-variant: #424655;
-            --glass-bg: rgba(23, 23, 27, 0.8);
-            --glass-border: rgba(255, 255, 255, 0.05);
+            --color-background: #080A0C;
+            --color-surface: #0D0F12;
+            --color-surface-container: #13161A;
+            --color-surface-container-lowest: #0A0C0E;
+            --color-on-surface: #E8EAED;
+            --color-on-surface-variant: #9AA0B4;
+            --color-primary: #4D8EFF;
+            --color-on-primary: #080A0C;
+            --color-secondary: #C260FF;
+            --color-outline: #2A2D35;
+            --color-outline-variant: #3D4150;
         }
-        .volt-glow:hover { box-shadow: 0 0 15px rgba(47, 111, 255, 0.15); }
-        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); }
-        .countdown-figures { font-variant-numeric: tabular-nums; }
-        .ignition-strip { background: linear-gradient(to right, #2F6FFF, #A63CFF); }
-        .group:hover .reveal-btn { opacity: 1; transform: translateY(0); }
+        * { font-family: 'Geist', sans-serif; }
+        .font-mono, .mono { font-family: 'Geist Mono', monospace; }
+        .glass { background: rgba(13,15,18,0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.06); }
+        .light .glass { background: rgba(248,250,252,0.8); border-color: rgba(0,0,0,0.08); }
+        .glow-blue:hover { box-shadow: 0 0 20px rgba(77,142,255,0.2); }
+        .glow-blue-strong { box-shadow: 0 0 30px rgba(77,142,255,0.3); }
+        .gradient-text { background: linear-gradient(135deg, #4D8EFF 0%, #C260FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .ignition-bar { background: linear-gradient(90deg, #4D8EFF, #C260FF); }
+        .product-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .product-card:hover .add-btn { opacity: 1; transform: translateY(0); }
+        .add-btn { opacity: 0; transform: translateY(8px); transition: opacity 0.2s ease, transform 0.2s ease; }
+        #searchInput::placeholder { color: var(--color-outline-variant); }
+        .countdown-digit { font-family: 'Geist Mono', monospace; font-variant-numeric: tabular-nums; }
+        .search-glow:focus-within { box-shadow: 0 0 0 2px rgba(77,142,255,0.3); }
+        .nav-glass { background: rgba(8,10,12,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .light .nav-glass { background: rgba(255,255,255,0.9); border-bottom-color: rgba(0,0,0,0.08); }
+        /* skeleton */
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        .skeleton { background: linear-gradient(90deg, #13161A 25%, #1D2128 50%, #13161A 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        /* Toast */
+        #toastContainer { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 12px 18px; border-radius: 6px; font-size: 13px; font-family: 'Geist Mono', monospace; letter-spacing: 0.04em; transition: all 0.3s ease; max-width: 320px; }
+        /* Profile dropdown */
+        #profileMenu { transform-origin: top right; }
+        #profileMenu.hidden { opacity: 0; transform: scale(0.95); pointer-events: none; }
+        #profileMenu.open { opacity: 1; transform: scale(1); pointer-events: all; }
     </style>
 </head>
-<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col antialiased">
-    <!-- TopNavBar -->
-    <header class="bg-surface/80 backdrop-blur-xl border-b border-outline/20 shadow-sm fixed top-0 w-full z-50">
-        <div class="flex justify-between items-center px-margin-desktop py-4 max-w-[1440px] mx-auto w-full">
-            <div class="font-display-lg text-display-lg font-bold tracking-tighter text-primary">
-                FLASHCART
-            </div>
-            <div class="flex-1 max-w-md mx-8 hidden md:block">
-                <div class="relative flex items-center w-full border-b border-outline-variant focus-within:border-primary transition-colors pb-1">
-                    <span class="material-symbols-outlined text-on-surface-variant absolute left-0 text-[20px] ml-xs">search</span>
-                    <input id="searchInput" oninput="handleSearch(event)" class="w-full bg-transparent border-none focus:ring-0 text-on-surface font-body-md pl-lg pr-xs py-base placeholder:text-outline-variant outline-none" placeholder="Search products..." type="text"/>
-                    <div class="absolute right-xs font-data-mono-md text-data-mono-md text-outline-variant text-xs">⌘K</div>
-                    <div class="absolute left-0 bottom-[-1px] w-[2px] h-[6px] bg-primary opacity-0 focus-within:opacity-100 transition-opacity"></div>
-                </div>
-            </div>
-            <div class="flex items-center gap-md">
-                <button onclick="window.location.href='/cart.html'" class="text-on-surface-variant hover:text-primary transition-colors duration-200 relative volt-glow rounded">
-                    <span class="material-symbols-outlined">shopping_cart</span>
-                    <span id="cartBadge" class="absolute -top-1 -right-1 flex h-3 w-3 hidden">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                    </span>
-                </button>
-                <button id="themeToggle" onclick="toggleTheme()" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded">
-                    <span class="material-symbols-outlined" id="themeIcon">light_mode</span>
-                </button>
-                <button id="authBtn" onclick="window.location.href='/auth.html'" class="text-on-surface-variant hover:text-primary transition-colors duration-200 volt-glow rounded">
-                    <span class="material-symbols-outlined">account_circle</span>
-                </button>
-                <button id="logoutBtn" onclick="logout()" class="hidden text-on-surface-variant hover:text-red-400 transition-colors duration-200 volt-glow rounded">
-                    <span class="material-symbols-outlined">logout</span>
-                </button>
+<body class="bg-background text-on-surface min-h-screen flex flex-col antialiased">
+
+<!-- ═══ NAV ═══ -->
+<header class="nav-glass fixed top-0 w-full z-50">
+    <div class="flex justify-between items-center px-6 md:px-12 py-4 max-w-[1440px] mx-auto w-full">
+        <!-- Logo -->
+        <a href="/index.html" class="font-mono text-xl font-bold tracking-tight gradient-text select-none">FLASHCART</a>
+
+        <!-- Search -->
+        <div class="flex-1 max-w-sm mx-8 hidden md:block">
+            <div class="flex items-center gap-2 bg-surface-container border border-outline rounded-lg px-3 py-2 search-glow transition-all">
+                <span class="material-symbols-outlined text-on-surface-variant text-[18px]" style="font-size:18px">search</span>
+                <input id="searchInput" oninput="handleSearch(event)" placeholder="Search products..." type="text"
+                       class="bg-transparent border-none outline-none text-sm text-on-surface placeholder:text-outline-variant flex-1 min-w-0"/>
+                <span class="font-mono text-xs text-outline-variant hidden md:block">⌘K</span>
             </div>
         </div>
-    </header>
-    
-    <main class="flex-1 mt-[80px] max-w-[1440px] mx-auto w-full px-gutter md:px-margin-desktop py-xl">
-        <!-- Hero Section -->
-        <section class="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-xl relative">
-            <div class="md:col-span-7 flex flex-col justify-center">
-                <div class="font-label-caps text-label-caps text-primary tracking-widest uppercase mb-sm flex items-center gap-xs">
-                    <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                    LIVE FLASH SALE
-                </div>
-                <h1 class="font-display-lg text-display-lg mb-md leading-tight text-on-surface">
-                    Precision Gear.<br/>Zero Hesitation.
-                </h1>
-                <p class="font-body-lg text-body-lg text-on-surface-variant mb-lg max-w-lg">
-                    Access elite tactical equipment before the window closes. Limited stock, absolute performance.
-                </p>
-                <div>
-                    <button onclick="document.getElementById('products').scrollIntoView({behavior: 'smooth'})" class="bg-primary text-on-primary font-label-caps text-label-caps px-lg py-sm rounded volt-glow transition-all uppercase tracking-wider">
-                        Explore Collection
-                    </button>
-                </div>
-            </div>
-            <div class="md:col-span-5 flex items-center justify-end">
-                <div class="glass-panel p-md w-full max-w-sm rounded relative overflow-hidden group">
-                    <div class="absolute top-0 left-0 w-full h-[2px] ignition-strip animate-[shrink_24h_linear_forwards]" style="transform-origin: left; width: 65%;"></div>
-                    <div class="font-label-caps text-label-caps text-on-surface-variant mb-md uppercase">Time Remaining</div>
-                    <div class="flex justify-between items-end gap-sm countdown-figures">
-                        <div class="flex flex-col">
-                            <span class="font-data-mono-lg text-data-mono-lg text-on-surface">02</span>
-                            <span class="font-label-caps text-label-caps text-outline-variant mt-base">DD</span>
-                        </div>
-                        <span class="font-data-mono-lg text-data-mono-lg text-outline-variant pb-[14px]">:</span>
-                        <div class="flex flex-col">
-                            <span class="font-data-mono-lg text-data-mono-lg text-on-surface">14</span>
-                            <span class="font-label-caps text-label-caps text-outline-variant mt-base">HH</span>
-                        </div>
-                        <span class="font-data-mono-lg text-data-mono-lg text-outline-variant pb-[14px]">:</span>
-                        <div class="flex flex-col">
-                            <span class="font-data-mono-lg text-data-mono-lg text-on-surface">37</span>
-                            <span class="font-label-caps text-label-caps text-outline-variant mt-base">MM</span>
-                        </div>
-                        <span class="font-data-mono-lg text-data-mono-lg text-outline-variant pb-[14px]">:</span>
-                        <div class="flex flex-col">
-                            <span class="font-data-mono-lg text-data-mono-lg text-primary">59</span>
-                            <span class="font-label-caps text-label-caps text-outline-variant mt-base">SS</span>
-                        </div>
+
+        <!-- Nav Actions -->
+        <div class="flex items-center gap-3">
+            <!-- Cart -->
+            <a href="/cart.html" class="relative p-2 text-on-surface-variant hover:text-primary transition-colors glow-blue rounded-lg" title="Cart">
+                <span class="material-symbols-outlined" style="font-size:22px">shopping_cart</span>
+                <span id="cartBadge" class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full text-[10px] font-mono font-bold text-on-primary flex items-center justify-center hidden">0</span>
+            </a>
+
+            <!-- Theme -->
+            <button onclick="toggleTheme()" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg" title="Toggle theme">
+                <span class="material-symbols-outlined" id="themeIcon" style="font-size:20px">light_mode</span>
+            </button>
+
+            <!-- Auth/Profile -->
+            <div class="relative">
+                <!-- Guest state -->
+                <a id="authBtn" href="/auth.html"
+                   class="hidden px-4 py-1.5 border border-primary text-primary text-sm font-mono rounded-lg hover:bg-primary hover:text-on-primary transition-all">
+                    SIGN IN
+                </a>
+                <!-- Logged in state — avatar button -->
+                <button id="profileBtn" onclick="toggleProfileMenu()" class="hidden items-center gap-2 p-1 rounded-lg hover:bg-surface-container transition-colors">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-on-primary text-sm font-bold" id="avatarInitial">V</div>
+                    <span class="material-symbols-outlined text-on-surface-variant" style="font-size:16px">expand_more</span>
+                </button>
+
+                <!-- Profile Dropdown -->
+                <div id="profileMenu" class="hidden absolute right-0 top-12 w-56 glass rounded-xl shadow-2xl overflow-hidden transition-all duration-200">
+                    <div class="p-4 border-b border-outline">
+                        <p id="dropdownName" class="text-sm font-semibold text-on-surface">Loading...</p>
+                        <p id="dropdownEmail" class="text-xs text-on-surface-variant mt-0.5 truncate"></p>
+                    </div>
+                    <div class="py-1">
+                        <a href="/profile.html" class="flex items-center gap-3 px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors">
+                            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px">person</span>
+                            My Profile
+                        </a>
+                        <a href="/profile.html#orders" class="flex items-center gap-3 px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container transition-colors">
+                            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px">receipt_long</span>
+                            Past Orders
+                        </a>
+                        <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-surface-container transition-colors">
+                            <span class="material-symbols-outlined" style="font-size:18px">logout</span>
+                            Sign Out
+                        </button>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <!-- Product Grid -->
-        <section id="products" class="scroll-mt-24">
-            <div class="flex flex-wrap items-center justify-between gap-md mb-lg border-b border-outline/20 pb-md">
-                <div class="flex gap-xs">
-                    <button class="font-label-caps text-label-caps px-sm py-xs border border-primary text-primary rounded bg-primary/10">ALL</button>
-                </div>
-            </div>
-            
-            <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
-                <!-- Products will be dynamically injected here by JS -->
-            </div>
-        </section>
-    </main>
+    <!-- Mobile search -->
+    <div class="md:hidden px-4 pb-3">
+        <div class="flex items-center gap-2 bg-surface-container border border-outline rounded-lg px-3 py-2">
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px">search</span>
+            <input id="searchInputMobile" oninput="handleSearch(event)" placeholder="Search products..." type="text"
+                   class="bg-transparent border-none outline-none text-sm text-on-surface placeholder:text-outline-variant flex-1"/>
+        </div>
+    </div>
+</header>
 
-    <!-- Footer -->
-    <footer class="bg-surface-container-lowest border-t border-outline/20 w-full relative">
-        <div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop py-xl max-w-[1440px] mx-auto w-full gap-lg">
-            <div class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tighter">
-                FLASHCART
+<!-- ═══ MAIN ═══ -->
+<main class="flex-1 mt-[72px] md:mt-[64px] max-w-[1440px] mx-auto w-full px-4 md:px-12 py-10">
+
+    <!-- ─ Hero ─ -->
+    <section class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-14">
+        <div class="md:col-span-7 flex flex-col justify-center">
+            <div class="flex items-center gap-2 mb-5">
+                <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                <span class="font-mono text-xs text-primary tracking-[0.2em] uppercase">Live Flash Sale</span>
             </div>
-            <div class="font-label-caps text-label-caps text-on-surface-variant">
-                © 2026 FLASHCART TECHNOLOGIES.
+            <h1 class="text-5xl md:text-6xl font-black tracking-tight leading-[1.05] text-on-surface mb-5">
+                Precision Gear.<br/>
+                <span class="gradient-text">Zero Hesitation.</span>
+            </h1>
+            <p class="text-on-surface-variant text-lg max-w-lg mb-8 leading-relaxed">
+                Access elite tactical equipment before the window closes. Limited stock, absolute performance.
+            </p>
+            <div class="flex items-center gap-4">
+                <button onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})"
+                        class="px-8 py-3 bg-primary text-on-primary font-mono text-sm font-bold rounded-lg glow-blue-strong hover:opacity-90 transition-all uppercase tracking-wider">
+                    Explore Collection
+                </button>
+                <a href="/profile.html#orders" class="px-6 py-3 border border-outline text-on-surface-variant font-mono text-sm rounded-lg hover:border-primary hover:text-primary transition-all uppercase tracking-wider">
+                    My Orders
+                </a>
             </div>
         </div>
-    </footer>
-    <script src="/js/app.js?v=2"></script>
+
+        <!-- Countdown -->
+        <div class="md:col-span-5 flex items-center justify-end">
+            <div class="glass rounded-2xl p-7 w-full max-w-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-[2px] ignition-bar" id="saleProgressBar"></div>
+                <p class="font-mono text-xs text-on-surface-variant mb-5 uppercase tracking-widest">Time Remaining</p>
+                <div class="grid grid-cols-4 gap-3" id="countdownGrid">
+                    <div class="flex flex-col items-center">
+                        <span id="cdDays" class="countdown-digit text-4xl font-bold text-on-surface">--</span>
+                        <span class="font-mono text-[10px] text-outline-variant mt-1 uppercase">DD</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <span id="cdHours" class="countdown-digit text-4xl font-bold text-on-surface">--</span>
+                        <span class="font-mono text-[10px] text-outline-variant mt-1 uppercase">HH</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <span id="cdMins" class="countdown-digit text-4xl font-bold text-on-surface">--</span>
+                        <span class="font-mono text-[10px] text-outline-variant mt-1 uppercase">MM</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <span id="cdSecs" class="countdown-digit text-4xl font-bold text-primary">--</span>
+                        <span class="font-mono text-[10px] text-outline-variant mt-1 uppercase">SS</span>
+                    </div>
+                </div>
+                <div class="mt-5 pt-4 border-t border-outline flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                    <span class="font-mono text-xs text-green-400">SALE ACTIVE — ENDS SOON</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─ Products ─ -->
+    <section id="products" class="scroll-mt-20">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-outline">
+            <div class="flex items-center gap-3">
+                <h2 class="font-mono text-sm font-semibold text-on-surface uppercase tracking-widest">Collection</h2>
+                <span id="productCount" class="font-mono text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full"></span>
+            </div>
+            <div class="flex gap-2" id="categoryFilters">
+                <button class="font-mono text-xs px-3 py-1.5 border border-primary text-primary rounded-lg bg-primary/10 active-filter" data-filter="all" onclick="filterProducts('all', this)">ALL</button>
+            </div>
+        </div>
+
+        <!-- Grid -->
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <!-- Skeleton placeholders -->
+            <div class="skeleton rounded-xl h-80"></div>
+            <div class="skeleton rounded-xl h-80"></div>
+            <div class="skeleton rounded-xl h-80"></div>
+            <div class="skeleton rounded-xl h-80"></div>
+        </div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer class="border-t border-outline mt-16">
+    <div class="max-w-[1440px] mx-auto px-6 md:px-12 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <span class="font-mono text-primary font-bold tracking-tight">FLASHCART</span>
+        <div class="flex items-center gap-6 text-on-surface-variant font-mono text-xs">
+            <a href="#" class="hover:text-primary transition-colors">Privacy</a>
+            <a href="#" class="hover:text-primary transition-colors">Terms</a>
+            <a href="/profile.html" class="hover:text-primary transition-colors">Account</a>
+        </div>
+        <span class="font-mono text-xs text-on-surface-variant">© 2026 FLASHCART TECHNOLOGIES.</span>
+    </div>
+</footer>
+
+<div id="toastContainer"></div>
+
+<script src="/js/app.js?v=3"></script>
+<script>
+// ── Product image map (SKU → local image)
+const PRODUCT_IMAGES = {
+    'TACT-APEX-01':  '/images/product_daypack.png',
+    'TACT-CHRON-02': '/images/product_watch.png',
+    'TACT-GHOST-03': '/images/product_jacket.png',
+    'TACT-LUMEN-04': '/images/product_torch.png',
+};
+
+function getProductImage(product) {
+    return PRODUCT_IMAGES[product.sku] || PRODUCT_IMAGES[Object.keys(PRODUCT_IMAGES).find(k => product.name && product.name.toLowerCase().includes(k.split('-')[1].toLowerCase()))] || null;
+}
+
+// ── Live countdown clock
+function startCountdown() {
+    // Sale ends 3 days from fixed anchor date (Aug 23, 2026 23:59:59 IST)
+    const endDate = new Date('2026-08-25T23:59:59+05:30');
+
+    function tick() {
+        const now = new Date();
+        const diff = endDate - now;
+
+        if (diff <= 0) {
+            document.getElementById('cdDays').textContent = '00';
+            document.getElementById('cdHours').textContent = '00';
+            document.getElementById('cdMins').textContent = '00';
+            document.getElementById('cdSecs').textContent = '00';
+            return;
+        }
+
+        const days  = Math.floor(diff / 86400000);
+        const hours = Math.floor((diff % 86400000) / 3600000);
+        const mins  = Math.floor((diff % 3600000) / 60000);
+        const secs  = Math.floor((diff % 60000) / 1000);
+
+        document.getElementById('cdDays').textContent  = String(days).padStart(2, '0');
+        document.getElementById('cdHours').textContent = String(hours).padStart(2, '0');
+        document.getElementById('cdMins').textContent  = String(mins).padStart(2, '0');
+        document.getElementById('cdSecs').textContent  = String(secs).padStart(2, '0');
+    }
+
+    tick();
+    setInterval(tick, 1000);
+}
+
+// ── Category filter state
+let allProducts = [];
+
+function filterProducts(brand, btn) {
+    document.querySelectorAll('[data-filter]').forEach(b => {
+        b.classList.remove('border-primary', 'text-primary', 'bg-primary/10');
+        b.classList.add('border-outline', 'text-on-surface-variant');
+    });
+    btn.classList.add('border-primary', 'text-primary', 'bg-primary/10');
+    btn.classList.remove('border-outline', 'text-on-surface-variant');
+
+    const filtered = brand === 'all' ? allProducts : allProducts.filter(p => p.brand === brand);
+    renderProducts(filtered);
+}
+
+function renderProducts(products) {
+    const grid = document.getElementById('productGrid');
+    if (!products || !products.length) {
+        grid.innerHTML = `
+            <div class="col-span-full flex flex-col items-center py-24 text-on-surface-variant gap-4">
+                <span class="material-symbols-outlined text-7xl opacity-20">search_off</span>
+                <p class="font-mono text-sm opacity-40 uppercase tracking-widest">No products found</p>
+            </div>`;
+        return;
+    }
+
+    grid.innerHTML = products.map(p => {
+        const img = getProductImage(p);
+        const imgHTML = img
+            ? `<img src="${img}" alt="${escHtml(p.name)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>`
+            : `<span class="material-symbols-outlined text-7xl text-outline-variant group-hover:text-primary transition-colors">inventory_2</span>`;
+
+        return `
+        <div id="product-${p.id}" class="product-card bg-surface-container border border-outline rounded-xl overflow-hidden cursor-pointer group relative"
+             onclick="window.location.href='/product.html?id=${p.id}'">
+            <div class="absolute top-0 left-0 w-full h-[2px] ignition-bar opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+            <div class="h-52 overflow-hidden bg-surface flex items-center justify-center relative">
+                ${imgHTML}
+            </div>
+            <div class="p-5 pb-14">
+                <div class="font-mono text-[10px] text-primary uppercase tracking-widest mb-1">${escHtml(p.brand || 'Ignition')}</div>
+                <h3 class="text-on-surface font-semibold text-base mb-0.5 truncate">${escHtml(p.name)}</h3>
+                <p class="text-on-surface-variant text-xs leading-relaxed line-clamp-2 mb-3">${escHtml(p.description || '')}</p>
+                <div class="font-mono text-lg font-bold text-primary">${formatPrice(p.price)}</div>
+            </div>
+            <button onclick="event.stopPropagation(); addToCartServer('${p.id}', '${escHtml(p.name)}', ${p.price})"
+                    class="add-btn absolute bottom-4 left-4 right-4 bg-primary text-on-primary font-mono text-xs font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 uppercase tracking-wider">
+                <span class="material-symbols-outlined" style="font-size:16px">add_shopping_cart</span>
+                Add to Cart
+            </button>
+        </div>`;
+    }).join('');
+}
+
+// Override fetchProducts to use our enhanced render
+const _origFetch = window.fetchProducts;
+window.fetchProducts = async function(query = '') {
+    const grid = document.getElementById('productGrid');
+    if (!grid) return;
+
+    // Skeleton
+    grid.innerHTML = Array(4).fill('<div class="skeleton rounded-xl h-80"></div>').join('');
+
+    try {
+        const url = query ? `/api/v1/products?search=${encodeURIComponent(query)}&limit=20` : `/api/v1/products?limit=20`;
+        const res  = await fetch(url);
+        if (!res.ok) throw new Error('API error');
+        const json = await res.json();
+
+        const payload  = (json && json.data !== undefined) ? json.data : json;
+        const products = payload?.products ?? (Array.isArray(payload) ? payload : []);
+
+        allProducts = products;
+
+        // Build brand filters
+        const brands = [...new Set(products.map(p => p.brand).filter(Boolean))];
+        const fc = document.getElementById('categoryFilters');
+        if (fc && brands.length > 1) {
+            const extras = brands.map(b => `<button class="font-mono text-xs px-3 py-1.5 border border-outline text-on-surface-variant rounded-lg hover:border-primary hover:text-primary transition-colors" data-filter="${escHtml(b)}" onclick="filterProducts('${escHtml(b)}', this)">${escHtml(b.toUpperCase())}</button>`).join('');
+            fc.innerHTML = `<button class="font-mono text-xs px-3 py-1.5 border border-primary text-primary rounded-lg bg-primary/10" data-filter="all" onclick="filterProducts('all', this)">ALL</button>${extras}`;
+        }
+
+        const countEl = document.getElementById('productCount');
+        if (countEl) countEl.textContent = `${products.length} items`;
+
+        renderProducts(products);
+    } catch (err) {
+        console.error(err);
+        grid.innerHTML = `
+            <div class="col-span-full flex flex-col items-center py-24 text-red-400 gap-4">
+                <span class="material-symbols-outlined text-7xl">error</span>
+                <p class="font-mono text-sm uppercase tracking-widest">Failed to load — API may be starting up</p>
+                <button onclick="fetchProducts()" class="mt-2 px-4 py-2 border border-red-400/40 rounded-lg font-mono text-xs hover:bg-red-400/10 transition-colors">RETRY</button>
+            </div>`;
+    }
+};
+
+// Profile menu toggle
+function toggleProfileMenu() {
+    const menu = document.getElementById('profileMenu');
+    menu.classList.toggle('hidden');
+    menu.classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+    if (!document.getElementById('profileBtn')?.contains(e.target)) {
+        const menu = document.getElementById('profileMenu');
+        if (menu && !menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+            menu.classList.remove('open');
+        }
+    }
+});
+
+// Load profile info into dropdown
+async function loadProfileDropdown() {
+    const token = getToken();
+    if (!token) return;
+    try {
+        const data = await authFetch('/api/v1/users/me');
+        const name  = `${data?.first_name || ''} ${data?.last_name || ''}`.trim() || 'User';
+        const email = data?.email || '';
+        const initial = name[0]?.toUpperCase() || 'U';
+        const el = document.getElementById('dropdownName');
+        const em = document.getElementById('dropdownEmail');
+        const av = document.getElementById('avatarInitial');
+        if (el) el.textContent = name;
+        if (em) em.textContent = email;
+        if (av) av.textContent = initial;
+    } catch (_) {}
+}
+
+// Override checkSession to show avatar
+const _origCheckSession = window.checkSession;
+window.checkSession = function() {
+    const token = getToken();
+    const authBtn   = document.getElementById('authBtn');
+    const profileBtn = document.getElementById('profileBtn');
+    if (token) {
+        authBtn?.classList.add('hidden');
+        profileBtn?.classList.remove('hidden');
+        profileBtn?.classList.add('flex');
+        loadProfileDropdown();
+    } else {
+        authBtn?.classList.remove('hidden');
+        profileBtn?.classList.add('hidden');
+    }
+};
+
+// ── Init
+startCountdown();
+</script>
 </body>
 </html>

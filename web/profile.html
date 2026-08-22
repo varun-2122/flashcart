@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>My Profile — FlashCart</title>
+    <meta name="description" content="View your FlashCart profile, past orders, and account settings."/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "var(--color-surface)",
+                        "primary": "var(--color-primary)",
+                        "on-surface": "var(--color-on-surface)",
+                        "background": "var(--color-background)",
+                        "surface-container": "var(--color-surface-container)",
+                        "on-surface-variant": "var(--color-on-surface-variant)",
+                        "outline": "var(--color-outline)",
+                    },
+                    fontFamily: { "mono": ["Geist Mono", "monospace"], "sans": ["Geist", "sans-serif"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --color-background: #ffffff;
+            --color-surface: #f8fafc;
+            --color-surface-container: #f1f5f9;
+            --color-on-surface: #0f172a;
+            --color-on-surface-variant: #64748b;
+            --color-primary: #2F6FFF;
+            --color-outline: #e2e8f0;
+        }
+        .dark {
+            --color-background: #080A0C;
+            --color-surface: #0D0F12;
+            --color-surface-container: #13161A;
+            --color-on-surface: #E8EAED;
+            --color-on-surface-variant: #9AA0B4;
+            --color-primary: #4D8EFF;
+            --color-outline: #2A2D35;
+        }
+        * { font-family: 'Geist', sans-serif; }
+        .font-mono { font-family: 'Geist Mono', monospace !important; }
+        body { background: var(--color-background); color: var(--color-on-surface); }
+        .gradient-text { background: linear-gradient(135deg, #4D8EFF 0%, #C260FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .ignition-bar { background: linear-gradient(90deg, #4D8EFF, #C260FF); }
+        .nav-glass { background: rgba(8,10,12,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .card { background: var(--color-surface-container); border: 1px solid var(--color-outline); border-radius: 12px; }
+        .avatar-gradient { background: linear-gradient(135deg, #4D8EFF 0%, #C260FF 100%); }
+        /* Tab nav */
+        .tab-btn { padding: 10px 20px; font-family: 'Geist Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 2px solid transparent; transition: all 0.15s; color: var(--color-on-surface-variant); }
+        .tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+        .tab-btn:hover:not(.active) { color: var(--color-on-surface); }
+        /* Input style */
+        .fc-input { background: var(--color-surface); border: 1px solid var(--color-outline); border-radius: 8px; padding: 10px 14px; font-size: 14px; color: var(--color-on-surface); outline: none; width: 100%; transition: border-color 0.15s; }
+        .fc-input:focus { border-color: #4D8EFF; box-shadow: 0 0 0 3px rgba(77,142,255,0.12); }
+        .fc-input:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* Order status badge */
+        .badge { font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 100px; text-transform: uppercase; }
+        .badge-pending   { background: rgba(251,191,36,0.15); color: #FBB91F; border: 1px solid rgba(251,191,36,0.3); }
+        .badge-paid      { background: rgba(52,211,153,0.15); color: #34D399; border: 1px solid rgba(52,211,153,0.3); }
+        .badge-shipped   { background: rgba(77,142,255,0.15); color: #4D8EFF; border: 1px solid rgba(77,142,255,0.3); }
+        .badge-cancelled { background: rgba(239,68,68,0.15); color: #F87171; border: 1px solid rgba(239,68,68,0.3); }
+        .badge-default   { background: rgba(154,160,180,0.15); color: #9AA0B4; border: 1px solid rgba(154,160,180,0.3); }
+        /* Stat card */
+        .stat-card { background: var(--color-surface-container); border: 1px solid var(--color-outline); border-radius: 12px; padding: 20px; }
+        #toastContainer { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 12px 18px; border-radius: 6px; font-size: 13px; font-family: 'Geist Mono', monospace; letter-spacing: 0.04em; max-width: 320px; }
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        .skeleton { background: linear-gradient(90deg, #13161A 25%, #1D2128 50%, #13161A 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+    </style>
+</head>
+<body class="min-h-screen antialiased">
+
+<!-- Nav -->
+<header class="nav-glass fixed top-0 w-full z-50">
+    <div class="flex justify-between items-center px-6 md:px-12 py-4 max-w-[1440px] mx-auto">
+        <a href="/index.html" class="font-mono text-xl font-bold gradient-text">FLASHCART</a>
+        <div class="flex items-center gap-3">
+            <a href="/cart.html" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+                <span class="material-symbols-outlined" style="font-size:22px">shopping_cart</span>
+            </a>
+            <button onclick="toggleTheme()" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+                <span class="material-symbols-outlined" id="themeIcon" style="font-size:20px">light_mode</span>
+            </button>
+            <button onclick="logout()" class="flex items-center gap-2 px-3 py-1.5 border border-outline text-on-surface-variant text-xs font-mono rounded-lg hover:border-red-400 hover:text-red-400 transition-all uppercase">
+                <span class="material-symbols-outlined" style="font-size:14px">logout</span>
+                Sign Out
+            </button>
+        </div>
+    </div>
+</header>
+
+<main class="mt-[64px] max-w-[1200px] mx-auto px-4 md:px-12 py-10">
+
+    <!-- Page header -->
+    <div class="flex items-center gap-4 mb-10">
+        <a href="/index.html" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg">
+            <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">My Account</h1>
+            <p class="text-on-surface-variant text-sm mt-0.5">Manage your profile and view order history</p>
+        </div>
+    </div>
+
+    <!-- Profile Header card -->
+    <div class="card p-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+        <!-- Avatar -->
+        <div class="avatar-gradient w-20 h-20 rounded-2xl flex items-center justify-center text-white text-3xl font-bold flex-shrink-0" id="profileAvatar">V</div>
+        <div class="flex-1">
+            <h2 class="text-xl font-bold text-on-surface" id="profileName">Loading...</h2>
+            <p class="text-on-surface-variant text-sm mt-0.5" id="profileEmail">—</p>
+            <div class="flex items-center gap-3 mt-3">
+                <span class="badge badge-paid" id="profileRole">MEMBER</span>
+                <span class="text-xs text-on-surface-variant font-mono" id="profileSince">Joined —</span>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-3 sm:ml-auto">
+            <div class="stat-card text-center min-w-[80px]">
+                <p class="font-mono text-2xl font-bold text-primary" id="totalOrders">—</p>
+                <p class="text-xs text-on-surface-variant font-mono uppercase mt-1">Orders</p>
+            </div>
+            <div class="stat-card text-center min-w-[80px]">
+                <p class="font-mono text-2xl font-bold text-primary" id="totalSpent">—</p>
+                <p class="text-xs text-on-surface-variant font-mono uppercase mt-1">Spent</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab nav -->
+    <div class="flex border-b border-outline mb-8 gap-1">
+        <button class="tab-btn active" id="tabOrders" onclick="switchTab('orders')">
+            <span class="material-symbols-outlined align-middle mr-1" style="font-size:14px">receipt_long</span>
+            Past Orders
+        </button>
+        <button class="tab-btn" id="tabProfile" onclick="switchTab('profile')">
+            <span class="material-symbols-outlined align-middle mr-1" style="font-size:14px">person</span>
+            Profile Settings
+        </button>
+    </div>
+
+    <!-- ── Orders Tab ── -->
+    <section id="ordersTab">
+        <div id="ordersList" class="space-y-4">
+            <!-- Skeletons -->
+            <div class="skeleton h-24 w-full"></div>
+            <div class="skeleton h-24 w-full"></div>
+            <div class="skeleton h-24 w-full"></div>
+        </div>
+    </section>
+
+    <!-- ── Profile Settings Tab ── -->
+    <section id="profileTab" class="hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Personal Info -->
+            <div class="card p-6">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="font-semibold text-on-surface">Personal Information</h3>
+                    <button onclick="toggleEdit()" id="editToggleBtn" class="text-xs font-mono text-primary border border-primary/30 px-3 py-1 rounded-lg hover:bg-primary/10 transition-colors uppercase">Edit</button>
+                </div>
+                <form id="profileForm" onsubmit="saveProfile(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-mono text-on-surface-variant uppercase tracking-wider mb-1.5">First Name</label>
+                        <input id="editFirstName" type="text" class="fc-input" disabled placeholder="First name"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-on-surface-variant uppercase tracking-wider mb-1.5">Last Name</label>
+                        <input id="editLastName" type="text" class="fc-input" disabled placeholder="Last name"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-on-surface-variant uppercase tracking-wider mb-1.5">Email Address</label>
+                        <input id="editEmail" type="email" class="fc-input opacity-50" disabled placeholder="email@example.com"/>
+                        <p class="text-xs text-on-surface-variant mt-1">Email address cannot be changed.</p>
+                    </div>
+                    <button type="submit" id="saveBtn" class="hidden w-full py-2.5 bg-primary text-white font-mono text-xs rounded-lg uppercase tracking-wider hover:opacity-90 transition-opacity">
+                        Save Changes
+                    </button>
+                    <div id="profileMsg" class="hidden text-xs font-mono text-center mt-2"></div>
+                </form>
+            </div>
+
+            <!-- Account Security -->
+            <div class="card p-6">
+                <h3 class="font-semibold text-on-surface mb-5">Account Security</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-surface rounded-lg border border-outline">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-green-400" style="font-size:20px">verified_user</span>
+                            <div>
+                                <p class="text-sm font-medium text-on-surface">Email Verified</p>
+                                <p class="text-xs text-on-surface-variant">Your email is confirmed</p>
+                            </div>
+                        </div>
+                        <span class="badge badge-paid">Active</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-surface rounded-lg border border-outline">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary" style="font-size:20px">lock</span>
+                            <div>
+                                <p class="text-sm font-medium text-on-surface">Password</p>
+                                <p class="text-xs text-on-surface-variant">Last changed —</p>
+                            </div>
+                        </div>
+                        <button class="text-xs font-mono text-primary hover:underline uppercase">Change</button>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-outline">
+                    <h4 class="text-sm font-semibold text-on-surface mb-3">Danger Zone</h4>
+                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 py-2.5 border border-red-500/30 text-red-400 font-mono text-xs rounded-lg hover:bg-red-500/10 transition-colors uppercase tracking-wider">
+                        <span class="material-symbols-outlined" style="font-size:14px">logout</span>
+                        Sign Out of All Devices
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div id="toastContainer"></div>
+
+<script src="/js/app.js?v=3"></script>
+<script>
+// Guard: must be logged in
+if (!getToken()) window.location.href = '/auth.html';
+
+let currentProfile = null;
+let isEditing = false;
+
+function switchTab(tab) {
+    const ordersTab  = document.getElementById('ordersTab');
+    const profileTab = document.getElementById('profileTab');
+    const tabOrders  = document.getElementById('tabOrders');
+    const tabProfile = document.getElementById('tabProfile');
+
+    if (tab === 'orders') {
+        ordersTab.classList.remove('hidden');
+        profileTab.classList.add('hidden');
+        tabOrders.classList.add('active');
+        tabProfile.classList.remove('active');
+    } else {
+        ordersTab.classList.add('hidden');
+        profileTab.classList.remove('hidden');
+        tabProfile.classList.add('active');
+        tabOrders.classList.remove('active');
+    }
+}
+
+// Load profile
+async function loadProfile() {
+    try {
+        const data = await authFetch('/api/v1/users/me');
+        currentProfile = data;
+
+        const name    = `${data.first_name || ''} ${data.last_name || ''}`.trim() || 'User';
+        const initial = name[0]?.toUpperCase() || 'U';
+        const since   = data.created_at ? new Date(data.created_at).toLocaleDateString('en-US', {month: 'long', year: 'numeric'}) : '—';
+
+        document.getElementById('profileAvatar').textContent = initial;
+        document.getElementById('profileName').textContent   = name;
+        document.getElementById('profileEmail').textContent  = data.email || '—';
+        document.getElementById('profileSince').textContent  = `Joined ${since}`;
+        document.getElementById('profileRole').textContent   = (data.role || 'member').toUpperCase();
+
+        // Populate form
+        document.getElementById('editFirstName').value = data.first_name || '';
+        document.getElementById('editLastName').value  = data.last_name  || '';
+        document.getElementById('editEmail').value     = data.email      || '';
+    } catch (err) {
+        console.error('Failed to load profile:', err);
+        if (err.message?.includes('401') || err.message?.toLowerCase().includes('unauthorized')) {
+            window.location.href = '/auth.html';
+        }
+    }
+}
+
+// Load orders
+async function loadOrders() {
+    const listEl = document.getElementById('ordersList');
+    try {
+        const data   = await authFetch('/api/v1/orders');
+        const orders = Array.isArray(data) ? data : (data?.orders || []);
+
+        // Stats
+        const total = orders.reduce((s, o) => s + (o.total_amount || 0), 0);
+        document.getElementById('totalOrders').textContent = orders.length;
+        document.getElementById('totalSpent').textContent  = `$${total.toFixed(0)}`;
+
+        if (!orders.length) {
+            listEl.innerHTML = `
+                <div class="card p-12 flex flex-col items-center gap-4 text-on-surface-variant">
+                    <span class="material-symbols-outlined text-6xl opacity-20">receipt_long</span>
+                    <p class="font-mono text-sm uppercase tracking-widest opacity-40">No orders yet</p>
+                    <a href="/index.html" class="mt-2 px-6 py-2.5 bg-primary text-white font-mono text-xs rounded-lg uppercase tracking-wider hover:opacity-90 transition-opacity">
+                        Start Shopping
+                    </a>
+                </div>`;
+            return;
+        }
+
+        listEl.innerHTML = orders.map(order => {
+            const date   = new Date(order.created_at).toLocaleDateString('en-US', {day:'numeric', month:'short', year:'numeric'});
+            const status = (order.status || 'pending').toLowerCase();
+            const badgeClass = {
+                pending: 'badge-pending',
+                paid: 'badge-paid',
+                shipped: 'badge-shipped',
+                cancelled: 'badge-cancelled',
+            }[status] || 'badge-default';
+            const itemCount = order.items?.length || '—';
+            const canCancel = status === 'pending';
+
+            return `
+            <div class="card p-5 hover:border-primary/30 transition-colors">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-3 mb-1.5">
+                            <span class="font-mono text-xs text-on-surface-variant uppercase tracking-wider">Order</span>
+                            <span class="font-mono text-sm font-bold text-on-surface">#${order.id?.substring(0,8).toUpperCase()}</span>
+                            <span class="badge ${badgeClass}">${status}</span>
+                            ${order.coupon_code ? `<span class="badge badge-paid">🎟 ${escHtml(order.coupon_code)}</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-4 text-xs text-on-surface-variant font-mono">
+                            <span>${date}</span>
+                            <span>·</span>
+                            <span>${itemCount} item${itemCount !== 1 ? 's' : ''}</span>
+                        </div>
+                        ${order.items?.length ? `
+                        <div class="flex gap-2 mt-3 flex-wrap">
+                            ${order.items.slice(0,3).map(item => `
+                                <span class="text-xs bg-surface px-2 py-1 rounded border border-outline text-on-surface-variant">${escHtml(item.name || 'Item')}</span>
+                            `).join('')}
+                            ${order.items.length > 3 ? `<span class="text-xs text-on-surface-variant">+${order.items.length - 3} more</span>` : ''}
+                        </div>` : ''}
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <p class="font-mono text-lg font-bold text-primary">$${(order.total_amount || 0).toFixed(2)}</p>
+                        ${canCancel ? `
+                        <button onclick="cancelOrder('${order.id}')" class="mt-2 text-xs font-mono text-red-400 border border-red-400/30 px-3 py-1 rounded-lg hover:bg-red-400/10 transition-colors uppercase">
+                            Cancel
+                        </button>` : ''}
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+
+    } catch (err) {
+        listEl.innerHTML = `
+            <div class="card p-12 flex flex-col items-center gap-3 text-red-400">
+                <span class="material-symbols-outlined text-5xl">error</span>
+                <p class="font-mono text-sm">${err.message}</p>
+                <button onclick="loadOrders()" class="mt-2 px-4 py-2 border border-red-400/30 rounded-lg font-mono text-xs hover:bg-red-400/10 transition-colors uppercase">Retry</button>
+            </div>`;
+        document.getElementById('totalOrders').textContent = '—';
+        document.getElementById('totalSpent').textContent  = '—';
+    }
+}
+
+async function cancelOrder(orderId) {
+    if (!confirm('Cancel this order? Inventory will be released.')) return;
+    try {
+        await authFetch(`/api/v1/orders/${orderId}/cancel`, { method: 'POST' });
+        showToast('Order cancelled successfully', 'success');
+        loadOrders();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+function toggleEdit() {
+    isEditing = !isEditing;
+    const btn = document.getElementById('editToggleBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const fn = document.getElementById('editFirstName');
+    const ln = document.getElementById('editLastName');
+
+    fn.disabled = !isEditing;
+    ln.disabled = !isEditing;
+    btn.textContent = isEditing ? 'Cancel' : 'Edit';
+    if (isEditing) {
+        saveBtn.classList.remove('hidden');
+        fn.focus();
+    } else {
+        saveBtn.classList.add('hidden');
+        // Reset to current
+        fn.value = currentProfile?.first_name || '';
+        ln.value = currentProfile?.last_name  || '';
+    }
+}
+
+async function saveProfile(event) {
+    event.preventDefault();
+    const btn = document.getElementById('saveBtn');
+    const msg = document.getElementById('profileMsg');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    msg.classList.add('hidden');
+
+    try {
+        const data = await authFetch('/api/v1/users/me', {
+            method: 'PATCH',
+            body: JSON.stringify({
+                first_name: document.getElementById('editFirstName').value.trim(),
+                last_name:  document.getElementById('editLastName').value.trim(),
+            })
+        });
+        currentProfile = data;
+        const name = `${data.first_name || ''} ${data.last_name || ''}`.trim();
+        document.getElementById('profileName').textContent   = name;
+        document.getElementById('profileAvatar').textContent = name[0]?.toUpperCase() || 'U';
+        msg.className = 'text-xs font-mono text-center mt-2 text-green-400';
+        msg.textContent = '✓ Profile updated successfully';
+        msg.classList.remove('hidden');
+        setTimeout(() => { msg.classList.add('hidden'); toggleEdit(); }, 2000);
+    } catch (err) {
+        msg.className = 'text-xs font-mono text-center mt-2 text-red-400';
+        msg.textContent = err.message;
+        msg.classList.remove('hidden');
+    }
+    btn.disabled = false; btn.textContent = 'Save Changes';
+}
+
+// Handle #orders anchor
+function initPage() {
+    if (window.location.hash === '#orders') switchTab('orders');
+    loadProfile();
+    loadOrders();
+}
+
+initPage();
+</script>
+</body>
+</html>
