@@ -15,6 +15,7 @@ type Config struct {
 	Database DBConfig
 	Cache    CacheConfig
 	Logger   LoggerConfig
+	JWTSecret string
 }
 
 // AppConfig defines server settings.
@@ -31,6 +32,9 @@ type AppConfig struct {
 
 // DBConfig defines PostgreSQL pool settings.
 type DBConfig struct {
+	// DatabaseURL, when set, takes full priority over individual connection fields.
+	// Neon, Railway, Fly.io, and most cloud providers expose this as DATABASE_URL.
+	DatabaseURL     string
 	Host            string
 	Port            string
 	User            string
@@ -75,14 +79,16 @@ func Load() (*Config, error) {
 			GoogleClientID:  getEnv("GOOGLE_CLIENT_ID", ""),
 		},
 		Database: DBConfig{
+			// DATABASE_URL takes full priority; used with Neon, Railway, Fly.io, etc.
+			DatabaseURL:     getEnv("DATABASE_URL", ""),
 			Host:            getEnv("DB_HOST", "localhost"),
 			Port:            getEnv("DB_PORT", "5432"),
 			User:            getEnv("DB_USER", "postgres"),
 			Password:        getEnv("DB_PASSWORD", "postgres"),
 			DBName:          getEnv("DB_NAME", "flashcart_db"),
 			SSLMode:         getEnv("DB_SSLMODE", "disable"),
-			MaxConns:        getInt32Env("DB_MAX_CONNS", 25),
-			MinConns:        getInt32Env("DB_MIN_CONNS", 5),
+			MaxConns:        getInt32Env("DB_MAX_CONNS", 10),
+			MinConns:        getInt32Env("DB_MIN_CONNS", 2),
 			MaxConnIdleTime: getDurationEnv("DB_MAX_CONN_IDLE_TIME", 15*time.Minute),
 			MaxConnLifetime: getDurationEnv("DB_MAX_CONN_LIFETIME", 1*time.Hour),
 		},
@@ -97,13 +103,19 @@ func Load() (*Config, error) {
 			Level:  getEnv("LOG_LEVEL", "info"),
 			Format: getEnv("LOG_FORMAT", "json"),
 		},
+		JWTSecret: getEnv("JWT_SECRET", ""),
 	}
 
 	return cfg, nil
 }
 
-// DSN builds PostgreSQL connection DSN string.
+// DSN returns the PostgreSQL connection string.
+// When DATABASE_URL is set (e.g. from Neon/Railway/Fly.io), it is returned as-is
+// so that the full provider-issued URI (including SSL params) is preserved.
 func (c *DBConfig) DSN() string {
+	if c.DatabaseURL != "" {
+		return c.DatabaseURL
+	}
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		c.User, c.Password, c.Host, c.Port, c.DBName, c.SSLMode,

@@ -92,7 +92,7 @@ func NewServer(cfg *config.Config, db *database.PostgresDB, redis *cache.RedisCl
 		couponRepo  := coupon.NewPostgresCouponRepository(db)
 
 		// ── Security ──────────────────────────────────────────────────────────
-		jwtManager     := auth.NewJWTManager("", cfg.App.RequestTimeout*100)
+		jwtManager     := auth.NewJWTManager(cfg.JWTSecret, cfg.App.RequestTimeout*100)
 		authService    := auth.NewAuthService(userRepo, jwtManager, cfg.App.GoogleClientID)
 		authHandler    := auth.NewAuthHandler(authService)
 		authMiddleware := auth.AuthMiddleware(jwtManager)

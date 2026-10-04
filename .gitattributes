@@ -1,0 +1,28 @@
+# Normalize line endings
+* text=auto eol=lf
+
+# Go source files
+*.go text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+
+# SQL
+*.sql text eol=lf
+
+# YAML / config
+*.yaml text eol=lf
+*.yml text eol=lf
+*.env text eol=lf
+
+# HTML / JS / CSS
+*.html text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+
+# Binaries
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary

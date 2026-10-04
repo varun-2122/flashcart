@@ -15,28 +15,20 @@ services:
         value: info
       - key: LOG_FORMAT
         value: json
-      - key: DB_HOST
-        fromDatabase:
-          name: flashcart-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: flashcart-db
-          property: port
-      - key: DB_USER
-        fromDatabase:
-          name: flashcart-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: flashcart-db
-          property: password
-      - key: DB_NAME
-        fromDatabase:
-          name: flashcart-db
-          property: database
-      - key: DB_SSLMODE
-        value: disable
+
+      # ── Neon PostgreSQL ────────────────────────────────────────────────────
+      # Set DATABASE_URL in the Render dashboard to your Neon connection string.
+      # Format: postgres://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
+      - key: DATABASE_URL
+        sync: false
+
+      # ── Security ──────────────────────────────────────────────────────────
+      - key: JWT_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+      # ── Redis (Render managed) ─────────────────────────────────────────────
       - key: REDIS_HOST
         fromService:
           type: redis
@@ -48,17 +40,13 @@ services:
           name: flashcart-redis
           property: port
       - key: REDIS_PASSWORD
-        value: ""
+        fromService:
+          type: redis
+          name: flashcart-redis
+          property: password
 
   - type: redis
     name: flashcart-redis
     plan: free
     region: singapore
-    ipAllowList: [] # internal access only
-
-databases:
-  - name: flashcart-db
-    databaseName: flashcart_db
-    user: flashcart_user
-    plan: free
-    region: singapore
+    ipAllowList: []

@@ -131,11 +131,11 @@ FlashCart decouples execution using a **Go Goroutine Worker Pool**:
 ## 🛠 5. Tech Stack
 
 - **Language & Runtime**: Go 1.24+ (Standard Library, `net/http`)
-- **Database**: PostgreSQL 16 (`jackc/pgx/v5` connection pooling via `pgxpool`)
+- **Database**: PostgreSQL via [Neon](https://neon.tech) (serverless, free tier) — `jackc/pgx/v5` connection pooling via `pgxpool`
 - **Cache**: Redis 7 (`redis/go-redis/v9`)
 - **Security**: JWT (`golang-jwt/jwt/v5`), Bcrypt password hashing (`golang.org/x/crypto`)
 - **Containerization & Dev Tooling**: Docker, Docker Compose, Makefile
-- **DevOps**: GitHub Actions CI/CD Pipeline
+- **DevOps**: GitHub Actions CI/CD Pipeline, Render (free hosting)
 - **Observability**: Prometheus (`/metrics`), Grafana, OpenTelemetry, `slog` JSON Logging
 
 ---
@@ -217,11 +217,6 @@ flashcart/
    make run
    ```
 
-5. **Execute Unit Test Suite**
-   ```bash
-   make test
-   ```
-
 ---
 
 ## 🚦 8. Engineering Phase Roadmap
@@ -232,8 +227,6 @@ flashcart/
 | **Phase 2** | Domain Engineering & Core Modules (JWT Auth, Refresh Tokens, Product Catalog, Inventory Optimistic Locking, Cart, Order DB Transactions) | ✅ **Completed** |
 | **Phase 3** | Concurrency Engine & Business Observability (Go Worker Pools, Prometheus `/metrics`, Grafana Business Dashboard) | ✅ **Completed** |
 | **Phase 4** | Production Observability & Cloud Native (OpenTelemetry Tracing, GitHub Actions CI/CD Pipeline, Kubernetes & Helm Deployment) | ✅ **Completed** |
-| **Phase 5** | Frontend UI Integration (Stitch/Glassmorphism Design) | ✅ **Completed** |
-| **Phase 6** | Google OAuth Integration (Identity Services & Token Verification) | ✅ **Completed** |
 
 ---
 
