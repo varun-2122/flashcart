@@ -77,12 +77,25 @@ function logout() {
     window.location.href = '/index.html';
 }
 
+// ── Product image map (SKU → local image)
+const PRODUCT_IMAGES = {
+    'TACT-APEX-01':  '/images/product_daypack.png',
+    'TACT-CHRON-02': '/images/product_watch.png',
+    'TACT-GHOST-03': '/images/product_jacket.png',
+    'TACT-LUMEN-04': '/images/product_torch.png',
+};
+
+function getProductImage(product) {
+    if (!product) return null;
+    return PRODUCT_IMAGES[product.sku] || PRODUCT_IMAGES[Object.keys(PRODUCT_IMAGES).find(k => product.name && product.name.toLowerCase().includes(k.split('-')[1].toLowerCase()))] || null;
+}
+
 // ── Product Grid ──────────────────────────────────
 
 let searchTimeout;
 function handleSearch(event) {
     clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => fetchProducts(event.target.value.trim()), 300);
+    searchTimeout = setTimeout(() => window.fetchProducts ? window.fetchProducts(event.target.value.trim()) : fetchProducts(event.target.value.trim()), 300);
 }
 
 async function fetchProducts(query = '') {
@@ -123,7 +136,13 @@ async function fetchProducts(query = '') {
             return;
         }
 
-        grid.innerHTML = products.map(p => `
+        grid.innerHTML = products.map(p => {
+            const img = getProductImage(p);
+            const imgHTML = img
+                ? `<img src="${img}" alt="${escHtml(p.name)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>`
+                : `<span class="material-symbols-outlined text-6xl text-outline-variant group-hover:text-primary transition-colors duration-300">inventory_2</span>`;
+
+            return `
             <div
                 id="product-${p.id}"
                 class="bg-surface-container border border-outline/20 rounded relative group overflow-hidden volt-glow transition-shadow cursor-pointer"
@@ -131,7 +150,7 @@ async function fetchProducts(query = '') {
             >
                 <div class="absolute top-0 left-0 w-full h-[2px] bg-primary"></div>
                 <div class="h-48 relative overflow-hidden bg-surface flex items-center justify-center p-4">
-                    <span class="material-symbols-outlined text-6xl text-outline-variant group-hover:text-primary transition-colors duration-300">inventory_2</span>
+                    ${imgHTML}
                 </div>
                 <div class="p-6 relative pb-14">
                     <h3 class="font-headline-sm text-lg text-on-surface mb-1 truncate">${escHtml(p.name)}</h3>
@@ -181,8 +200,12 @@ function updateCartBadge() {
     const badge = document.getElementById('cartBadge');
     if (!badge) return;
     const count = localCart.reduce((s, i) => s + i.quantity, 0);
-    if (count > 0) badge.classList.remove('hidden');
-    else           badge.classList.add('hidden');
+    if (count > 0) {
+        badge.classList.remove('hidden');
+        badge.textContent = count;
+    } else {
+        badge.classList.add('hidden');
+    }
 }
 
 /** Add item to server cart (requires auth), fall back to local-only with a prompt */

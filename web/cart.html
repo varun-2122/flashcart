@@ -198,7 +198,7 @@
         countEl.classList.remove('hidden');
 
         container.innerHTML = cartItems.map((item, idx) => {
-            const imgSrc = PRODUCT_IMAGES[item.sku] || null;
+            const imgSrc = getProductImage(item);
             const imgHtml = imgSrc
                 ? `<img src="${imgSrc}" alt="${escHtml(item.name || '')}" class="w-full h-full object-cover"/>`
                 : `<span class="material-symbols-outlined text-outline-variant" style="font-size:24px">inventory_2</span>`;
